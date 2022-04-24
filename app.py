@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from oauth import *
 from oauth.web_token import *
@@ -24,6 +25,20 @@ import pymysql
 
 app = FastAPI()
 
+origins = [
+    "https://slowdraft.netlify.app",
+    "http://localhost:3000",
+    "http://0.0.0.0:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class SelectLeague(BaseModel):
     league_key: str
 
@@ -39,11 +54,10 @@ async def league_selection(league_key: SelectLeague, authorization: str = Header
 
 @app.on_event("startup")
 async def startup_event():
-    # app.run(use_reloader=True, port=5000, threaded=True, debug=True)
     if 'client_id' in os.environ:
         config.client_id = os.environ['client_id']
         config.client_secret = os.environ['client_secret']
-        config.redirect_uri = "https://slowdraft.onrender.com"
+        config.redirect_uri = "https://slowdraft.netlify.app"
         config.pubnub_publish_key = os.environ['pubnub_publish_key']
         config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
         config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
@@ -86,8 +100,3 @@ async def startup_event():
         database = db.DB()
 
         config.SENDGRID_KEY = credentials.SENDGRID_KEY
-
-    # @app.before_request
-    # def force_https():
-    #     if request.endpoint in app.view_functions and not request.is_secure:
-    #         return redirect(request.url.replace('http://', 'https://'))
