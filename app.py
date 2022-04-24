@@ -49,9 +49,9 @@ async def startup_event():
         config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
 
         # get Yahoo league credentials
-        config.league_key = os.environ['game_key'] + \
-            ".l." + os.environ['yahoo_league_id']
-        config.draft_id = os.environ['draft_id']
+        # config.league_key = os.environ['game_key'] + \
+        #     ".l." + os.environ['yahoo_league_id']
+        # config.draft_id = os.environ['draft_id']
 
         # get DB config
         config.host = os.environ['MYSQL_HOST']
@@ -60,9 +60,9 @@ async def startup_event():
         config.db = os.environ['MYSQL_DB']
         database = db.DB()
 
-        config.yahoo_league_id = [os.environ['yahoo_league_id']]
-        config.league_id = os.environ['league_id']
-        config.draft_id = os.environ['draft_id']
+        # config.yahoo_league_id = [os.environ['yahoo_league_id']]
+        # config.league_id = os.environ['league_id']
+        # config.draft_id = os.environ['draft_id']
     else:
         import credentials
         app.secret_key = credentials.SECRET_KEY
