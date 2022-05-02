@@ -5,7 +5,7 @@ import requests
 import xmltodict
 import json
 import oauth.yahoo_oauth
-
+import util
 
 def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
 		# pass in a Yahoo fantasy sports URL here
@@ -39,22 +39,23 @@ def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
 								break
 				# give up after 3 tries
 				if refresh == False:
-						session['yahoo'] = False
-						return ""
+						return False
 				# if refresh token is obtained, call the function again as it should work now
 				print("Success!")
 				return yahoo_request(url, token, refresh_token, useJson)
 		else:
 				print("HTTP Code: %s" % response.status_code)
 				print("HTTP Response: \n%s" % response.content)
-				return ""
-
+				return False
+				
 
 def organize_player_info(player_keys):
     LEAGUE_URL = YAHOO_BASE_URL + "league/" + \
         config.league_key + "/players;player_keys=" + player_keys
     players = []
     player_query = yahoo_request(LEAGUE_URL)
+    if player_query == False:
+        return util.return_error("token_error")
     try:
         for player in player_query['fantasy_content']['league']['players']['player']:
             player_data = {}
@@ -75,7 +76,7 @@ def organize_player_info(player_keys):
             player_data['position'] = player_query['fantasy_content']['league']['players']['player']['eligible_positions']['position']
             players.append(player_data)
         except:
-            flash("No players found.", "danger")
+            return []
     return players
 
 
