@@ -12,6 +12,8 @@ def get_leagues(access_token, refresh_token):
     GET_LEAGUES_URL = YAHOO_BASE_URL + 'users;use_login=1/games;game_keys=411/leagues'
     try:
         leagues_query = yahoo_api.yahoo_request(GET_LEAGUES_URL, access_token, refresh_token, True)
+        if leagues_query == False:
+            return util.return_error("token_error")
         user = leagues_query['fantasy_content']['users']['0']['user']
         leagues = user[1]['games']['0']['game'][1]['leagues']
         league_count = leagues['count']
@@ -112,6 +114,8 @@ def select_league(user, league_key):
                 user['leagues'], my_team_data, user['access_token'], user['refresh_token'])
         return {
             'success': True,
+            'pub': pubnub_publish_key,
+            'sub': pubnub_subscribe_key,
             'user': my_team_data,
             'teams': teams,
             'web_token': web_token,
@@ -120,6 +124,7 @@ def select_league(user, league_key):
         }
     except Exception as e:
         print(f"Error in select_league: {e}")
+        return util.return_error(e)
 
 
 def get_teams_in_league(league_key, access_token, refresh_token):
@@ -127,6 +132,9 @@ def get_teams_in_league(league_key, access_token, refresh_token):
     try:
         team_query = yahoo_api.yahoo_request(
             TEAM_URL, access_token, refresh_token)
+        if team_query == False:
+            return util.return_error("token_error")
         return team_query
     except Exception as e:
         print(f"Error in get_teams_in_league: {e}")
+        return util.return_error(e)
