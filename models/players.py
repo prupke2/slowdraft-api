@@ -59,6 +59,8 @@ def get_players(sortby, sortdir, position, player_search, offset):
 		player_query = yahoo_api.yahoo_request(LEAGUE_URL + "/players?status=A&position=" + position + "&sort=" + str(sortby) \
 		+ "&sdir=" + str(sortdir) + "&start=" + str(offset) + "&count=25;sorttype=season")
 
+	if player_query == False:
+			return util.return_error("token_error")
 	# print("\n\nQUERY: " + str(player_query))
 
 	skaters = []
