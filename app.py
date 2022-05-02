@@ -52,6 +52,77 @@ async def league_selection(league_key: SelectLeague, authorization: str = Header
     user = get_user_from_auth_token(authorization)
     return select_league(user, league_key.league_key)
 
+@app.get('/check_for_updates')
+# @exception_handler
+def check_for_updates_with_user_and_league(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    print(f"Getting updates for {user['team_name']} ({user['team_key']})")
+    return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
+
+
+@app.get('/get_db_players')
+# @exception_handler
+async def get_players_from_db(position: str = 'skaters', authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_db_players(user['draft_id'], position)
+
+@app.get('/get_teams')
+# @exception_handler
+async def get_teams(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    if 'draft_id' not in user:
+        return util.return_error('no_draft_id')
+    return get_teams_from_db(user['draft_id'])
+
+# -------------------------- Forum & Rules routes --------------------------
+
+@app.get('/get_forum_posts')
+def forum(user):
+    return get_forum_posts(user['yahoo_league_id'])
+
+
+@app.post('/new_forum_post')
+def post_to_forum(user):
+    post = json.loads(request.data)
+    return new_forum_post(post, user)
+
+
+@app.post('/edit_post')
+def update_post(user):
+    post = json.loads(request.data)
+    return update_forum_post(user, post['title'], post['body'], post['id'], post['parent_id'])
+
+
+@app.get('/view_post_replies/<int:post_id>')
+def view_forum_post_replies(user, post_id):
+    return get_post_replies(user['yahoo_league_id'], post_id)
+
+
+@app.get('/get_all_rules')
+def get_all_rules(user):
+    return get_rules(user['yahoo_league_id'])
+
+
+@app.post('/create_rule')
+# @check_if_admin
+def create_rule(user):
+    post = json.loads(request.data)
+    return new_rule(post, user)
+
+@app.post('/edit_rule')
+# @check_if_admin
+def edit_rule(user):
+    post = json.loads(request.data)
+    return update_rule(post, user)
+
+@app.get('/get_draft')
+# @exception_handler
+async def get_dps(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_draft(user['draft_id'], user['team_key'])
+
+# ____________________________________________________
+
 @app.on_event("startup")
 async def startup_event():
     if 'client_id' in os.environ:
