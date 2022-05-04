@@ -81,12 +81,3 @@ def oauth_login(code):
             'error': str(response),
             'status': response.status_code
         }
-
-
-def oauth_logout():
-    try:
-        session.clear()
-        return {'success': True}
-    except Exception(e):
-        error = 'Error clearing session: ' + str(e)
-        return {'success': False, 'error': error}
