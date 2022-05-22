@@ -8,6 +8,10 @@ import db
 import util
 
 
+class SelectLeague(BaseModel):
+    league_key: str
+
+
 def get_leagues(access_token, refresh_token):
     GET_LEAGUES_URL = YAHOO_BASE_URL + 'users;use_login=1/games;game_keys=411/leagues'
     try:
@@ -98,15 +102,17 @@ def check_league_registrations(leagues):
 
 
 def select_league(user, league_key):
-
     league_check = validate_league_key(user['leagues'], league_key)
-    print(f"league_check: {league_check}")
     if league_check == False:
         util.return_error('invalid_league', 403)
     try:
         team_query = get_teams_in_league(
                 league_key, user['access_token'], user['refresh_token'])
-        print(f"team_query: {team_query}")
+        if 'success' in team_query and team_query['success'] == False:
+            return {
+                'success': False,
+                'error': team_query['error']
+            }
         teams, my_team_data, is_live_draft, registered = status.set_team_sessions(
                 league_key, team_query)
         print(f"\n\nmy_team_data: {my_team_data}")
