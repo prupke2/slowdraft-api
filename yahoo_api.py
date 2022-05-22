@@ -7,54 +7,59 @@ import json
 import oauth.yahoo_oauth
 import util
 
-def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
-		# pass in a Yahoo fantasy sports URL here
-		token = config.access_token if config.access_token else access_token
-		print(f"token: {token}")
-		refresh_token = config.refresh_token if config.refresh_token else refresh_token
-		print(f"refresh_token: {refresh_token}")
-		header = "Bearer " + token
-		url = url if useJson is False else url + '?format=json'
-		print(f"Attempting to reach URL: {url}")
-		response = requests.get(url, headers={'Authorization': header})
 
-		if response.status_code == 200:
-				print("Success! \n")
-				if useJson == False:
-						return xmltodict.parse(response.content)
-				else:
-						return json.loads(response.content)
-		# a 401 response is expected if the access token has expired.
-		# if this happens, use the refresh token to get a new one
-		elif response.status_code == 401 and b"token_expired" in response.content:
-				print("Token Expired. Attempting to renew using refresh token.")
-				refresh_attempts = 0
-				# attempt to get a new token 3 times
-				while refresh_attempts < 3:
-						refresh_attempts += 1
-						print("Attempt # " + str(refresh_attempts))
-						refresh = oauth.yahoo_oauth.refresh_access_token(
-								refresh_token, config.client_id, config.client_secret, config.redirect_uri)
-						if refresh == True:
-								break
-				# give up after 3 tries
-				if refresh == False:
-						return False
-				# if refresh token is obtained, call the function again as it should work now
-				print("Success!")
-				return yahoo_request(url, token, refresh_token, useJson)
-		else:
-				print("HTTP Code: %s" % response.status_code)
-				print("HTTP Response: \n%s" % response.content)
-				return False
-				
+def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
+    # pass in a Yahoo fantasy sports URL here
+    token = config.access_token if config.access_token else access_token
+    print(f"token: {token}")
+    refresh_token = config.refresh_token if config.refresh_token else refresh_token
+    print(f"refresh_token: {refresh_token}")
+    header = "Bearer " + token
+    url = url if useJson is False else url + '?format=json'
+    print(f"Attempting to reach URL: {url}")
+    response = requests.get(url, headers={'Authorization': header})
+
+    if response.status_code == 200:
+        print("Success! \n")
+        if not useJson:
+            return xmltodict.parse(response.content)
+        else:
+            return json.loads(response.content)
+    # a 401 response is expected if the access token has expired.
+    # if this happens, use the refresh token to get a new one
+    elif response.status_code == 401 and b"token_expired" in response.content:
+        print("Token Expired. Attempting to renew using refresh token.")
+        refresh_attempts = 0
+        # attempt to get a new token 3 times
+        while refresh_attempts < 3:
+            refresh_attempts += 1
+            print("Attempt # " + str(refresh_attempts))
+            attempt = oauth.yahoo_oauth.refresh_access_token(
+                refresh_token, config.client_id, config.client_secret, config.redirect_uri)
+            if attempt['success']:
+                break
+        # give up after 3 tries
+        if not attempt['success']:
+            return attempt
+        # if refresh token is obtained, call the function again as it should work
+        # now
+        print("Success!")
+        return yahoo_request(url, token, refresh_token, useJson)
+    elif response.status_code == 400 and b"INVALID_REFRESH_TOKEN" in response.content:
+        print("HERE")
+        return response
+    else:
+        print("HTTP Code: %s" % response.status_code)
+        print("HTTP Response: \n%s" % response.content)
+        return response
+
 
 def organize_player_info(player_keys):
     LEAGUE_URL = YAHOO_BASE_URL + "league/" + \
         config.league_key + "/players;player_keys=" + player_keys
     players = []
     player_query = yahoo_request(LEAGUE_URL)
-    if player_query == False:
+    if not player_query:
         return util.return_error("token_error")
     try:
         for player in player_query['fantasy_content']['league']['players']['player']:
@@ -65,7 +70,7 @@ def organize_player_info(player_keys):
             player_data['team'] = player['editorial_team_abbr']
             player_data['position'] = player['eligible_positions']
             players.append(player_data)
-    except:
+    except BaseException:
         player_data = {}
         try:
             player_data['player_id'] = player_query['fantasy_content']['league']['players']['player']['player_id']
@@ -75,7 +80,7 @@ def organize_player_info(player_keys):
             player_data['team'] = player_query['fantasy_content']['league']['players']['player']['editorial_team_abbr']
             player_data['position'] = player_query['fantasy_content']['league']['players']['player']['eligible_positions']['position']
             players.append(player_data)
-        except:
+        except BaseException:
             return []
     return players
 
@@ -100,7 +105,8 @@ def organize_stat_data(stats):
 
             for stat in stat_list:
 
-                # creates a temporary dictionary for each player's stats which is appended to player_stats[] after each loop
+                # creates a temporary dictionary for each player's stats which
+                # is appended to player_stats[] after each loop
                 stat_data = {}
                 stat_data['stat_id'] = stat['stat_id']
                 stat_data['value'] = stat['value']
@@ -115,9 +121,10 @@ def organize_stat_data(stats):
                     if key == str(stat_data['stat_id']):
                         stat_data['stat'] = stat_index[key]
                         player_stats.append(stat_data)
-    except:  # this is performed if there is only one result.
+    except BaseException:  # this is performed if there is only one result.
         for stat in stats['fantasy_content']['players']['player']['player_stats']['stats']['stat']:
-            # creates a temporary dictionary for each player's stats which is appended to player_stats[] after each loop
+            # creates a temporary dictionary for each player's stats which is
+            # appended to player_stats[] after each loop
             stat_data = {}
             stat_data['stat_id'] = stat['stat_id']
             stat_data['value'] = stat['value']
