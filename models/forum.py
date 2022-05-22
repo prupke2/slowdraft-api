@@ -3,6 +3,15 @@ import datetime
 import db
 from util import return_error
 
+
+class ForumPostForm(BaseModel):
+		id: Union[int, None]
+		parent_id: int
+		user: object
+		title: Union[str, None]
+		body: str
+
+
 def get_forum_posts(yahoo_league_id):	
 	sql = """
 		SELECT f.id, f.title, f.body, f.yahoo_team_id, f.create_date, f.update_date,
@@ -15,7 +24,8 @@ def get_forum_posts(yahoo_league_id):
 		"""
 
 	database = db.DB()
-	posts = database.fetchAll(sql, [yahoo_league_id])
+	database.cur.execute(sql, [yahoo_league_id])
+	posts = database.cur.fetchall()
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(0)))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(0)))
@@ -38,7 +48,8 @@ def get_post_replies(yahoo_league_id, post_id):
 		AND f.parent_id=%s
 		 
 	"""
-	replies = database.fetchAll(sql, (yahoo_league_id, post_id))
+	database.cur.execute(sql, [yahoo_league_id, post_id])
+	replies = database.cur.fetchall()
 	if replies is False:
 		replies = []
 	else:
@@ -53,22 +64,22 @@ def new_forum_post(post, user):
 			VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"
 
 	database = db.DB()
-	database.cur.execute(sql, (post['title'], post['body'], user['team_key'], user['yahoo_league_id'], \
-		now, now, post['parent_id'], user['yahoo_team_id']))
+	database.cur.execute(sql, (post.title, post.body, user['team_key'], user['yahoo_league_id'], \
+		now, now, post.parent_id, user['yahoo_team_id']))
 	database.connection.commit()
 	util.update('latest_forum_update', user['draft_id'])
 
-	if post['parent_id'] is not None:
-		update_parent_timestamp(post['parent_id'])
+	if post.parent_id is not None:
+		update_parent_timestamp(post.parent_id)
 	return util.return_true()
 
-def update_forum_post(user, title, body, id, parent_id):
+def update_forum_post(user, post):
 	database = db.DB()
 	sql = "UPDATE forum SET title=%s, body=%s, update_date = %s WHERE id=%s"
-	database.cur.execute(sql, (title, body, datetime.datetime.utcnow(), id))
+	database.cur.execute(sql, (post.title, post.body, datetime.datetime.utcnow(), post.id))
 	database.connection.commit()
-	if parent_id is not None:
-		update_parent_timestamp(parent_id)
+	if post.parent_id is not None:
+		update_parent_timestamp(post.parent_id)
 	return util.return_true()
 
 def update_parent_timestamp(parent_id):
