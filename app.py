@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Union
 from oauth import *
 from oauth.web_token import *
 from random import randint
@@ -39,22 +40,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class SelectLeague(BaseModel):
-    league_key: str
 
 @app.get("/login/{code}")
 def login(code: str):
     return oauth_login(code)
 
+
 @app.post('/select_league')
-# @exception_handler
-async def league_selection(league_key: SelectLeague, authorization: str = Header(None)):
+async def league_selection(league: SelectLeague, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return select_league(user, league_key.league_key)
+    return select_league(user, league.league_key)
+
 
 @app.get('/check_for_updates')
-# @exception_handler
-def check_for_updates_with_user_and_league(authorization: str = Header(None)):
+async def check_for_updates_with_user_and_league(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     print(f"Getting updates for {user['team_name']} ({user['team_key']})")
     return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
@@ -66,6 +65,7 @@ async def get_players_from_db(position: str = 'skaters', authorization: str = He
     user = get_user_from_auth_token(authorization)
     return get_db_players(user['draft_id'], position)
 
+
 @app.get('/get_teams')
 # @exception_handler
 async def get_teams(authorization: str = Header(None)):
@@ -76,44 +76,50 @@ async def get_teams(authorization: str = Header(None)):
 
 # -------------------------- Forum & Rules routes --------------------------
 
+
 @app.get('/get_forum_posts')
-def forum(user):
+async def forum(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return get_forum_posts(user['yahoo_league_id'])
 
 
 @app.post('/new_forum_post')
-def post_to_forum(user):
-    post = json.loads(request.data)
+async def post_to_forum(post: ForumPostForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return new_forum_post(post, user)
 
 
 @app.post('/edit_post')
-def update_post(user):
-    post = json.loads(request.data)
-    return update_forum_post(user, post['title'], post['body'], post['id'], post['parent_id'])
+async def update_post(post: ForumPostForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return update_forum_post(user, post)
 
 
-@app.get('/view_post_replies/<int:post_id>')
-def view_forum_post_replies(user, post_id):
+@app.get("/view_post_replies/{post_id}")
+async def view_forum_post_replies(post_id: int, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return get_post_replies(user['yahoo_league_id'], post_id)
 
 
 @app.get('/get_all_rules')
-def get_all_rules(user):
+async def get_all_rules(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return get_rules(user['yahoo_league_id'])
 
 
 @app.post('/create_rule')
 # @check_if_admin
-def create_rule(user):
-    post = json.loads(request.data)
+async def create_rule(post: RulePostForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return new_rule(post, user)
+
 
 @app.post('/edit_rule')
 # @check_if_admin
-def edit_rule(user):
-    post = json.loads(request.data)
+async def edit_rule(post: RulePostForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
     return update_rule(post, user)
+
 
 @app.get('/get_draft')
 # @exception_handler
@@ -122,6 +128,7 @@ async def get_dps(authorization: str = Header(None)):
     return get_draft(user['draft_id'], user['team_key'])
 
 # ____________________________________________________
+
 
 @app.on_event("startup")
 async def startup_event():
