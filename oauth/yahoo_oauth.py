@@ -6,13 +6,12 @@ import models.status
 import models.league
 from .web_token import *
 import util
+import json
 
 def get_access_token(client_id, client_secret, redirect_uri, code):
     # This function takes the 7 digit code from the user and attempts to get a yahoo access token
     # If successful, the access and refresh tokens are returned
     base64_token = base64.b64encode((client_id + ':' + client_secret).encode())
-    print(f"client_id: {client_id}")
-    print(f"client_secret: {client_secret}")
     token = base64_token.decode("utf-8")
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -45,15 +44,20 @@ def refresh_access_token(refresh_token, client_id, client_secret, redirect_uri):
     response = requests.post(config.GET_TOKEN_URL, data)
     if response.status_code >= 200 and response.status_code <= 203:
         token_response = response.json()
-        session['yahoo'] = True
         config.access_token = token_response['access_token']
         config.refresh_token = token_response['refresh_token']
-        return True
+        return util.return_true()
     else:
+        msg = json.loads(response.content.decode())
         print("Error getting token. ")
         print("HTTP Code: %s" % response.status_code)
-        print("HTTP Response: \n%s" % response.content)
-        return False
+        print("HTTP Response: \n%s" % msg)
+
+        return {
+            'success': False,
+            'error': msg['error'],
+            'status': response.status_code
+        }
 
 
 def oauth_login(code):
