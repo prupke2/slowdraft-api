@@ -1,8 +1,8 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Union
+from typing import Union, List
 from oauth import *
 from oauth.web_token import *
 from random import randint
@@ -39,6 +39,46 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class SocketManager:
+    def __init__(self):
+        self.active_connections: List[(WebSocket, str)] = []
+
+    async def connect(self, websocket: WebSocket, user: str):
+        await websocket.accept()
+        self.active_connections.append((websocket, user))
+
+    def disconnect(self, websocket: WebSocket, user: str):
+        self.active_connections.remove((websocket, user))
+
+    async def broadcast(self, data):
+        for connection in self.active_connections:
+            await connection[0].send_json(data)    
+
+manager = SocketManager()
+
+
+@app.websocket("/chat")
+async def chat(websocket: WebSocket):
+    # sender = websocket.cookies.get("X-Authorization")
+    sender = "beigo"
+    print(f"sender: {sender}")
+    if sender:
+        await manager.connect(websocket, sender)
+        response = {
+            "user": sender,
+            "status": "connected"
+        }
+        await manager.broadcast(response)
+        try:
+            while True:
+                data = await websocket.receive_json()
+                print(f"data: {data}")
+                await manager.broadcast(data)
+        except WebSocketDisconnect as e:
+            manager.disconnect(websocket, sender)
+            response['status'] = "disconnected"
+            await manager.broadcast(response)
 
 
 @app.get("/login/{code}")
