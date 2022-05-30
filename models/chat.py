@@ -8,6 +8,12 @@ class SocketManager:
         await websocket.accept()
         self.active_connections.append((websocket, user))
 
+    async def connected_users(self):
+        user_list = []
+        for connection in self.active_connections:
+            user_list.append(connection[1])
+        return user_list 
+
     def disconnect(self, websocket: WebSocket, user: str):
         self.active_connections.remove((websocket, user))
 

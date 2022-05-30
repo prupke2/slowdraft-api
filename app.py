@@ -52,26 +52,25 @@ async def chat(
 ):
     if user:
         await manager.connect(websocket, user)
+        user_list = await manager.connected_users()
         response = {
             "user": user,
-            "status": "connected"
+            "status": "connected",
+						"users": user_list
         }
         await manager.broadcast(response)
         try:
             while True:
                 data = await websocket.receive_json()
-                print(f"data: {data}")
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
             manager.disconnect(websocket, user)
             response['status'] = "disconnected"
             await manager.broadcast(response)
         except websockets.ConnectionClosed as e:
-            print(f"Error: {e}")
             await manager.broadcast(response)
         except Exception as e:
             print(f"Error: {e}")
-            # break
 
 
 @app.get("/login/{code}")
