@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Union, List
@@ -19,6 +19,7 @@ from models.draft import *
 from models.team import *
 from models.rules import *
 from models.emails import *
+import models.chat
 from yahoo_api import *
 import db
 import datetime
@@ -40,33 +41,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class SocketManager:
-    def __init__(self):
-        self.active_connections: List[(WebSocket, str)] = []
 
-    async def connect(self, websocket: WebSocket, user: str):
-        await websocket.accept()
-        self.active_connections.append((websocket, user))
-
-    def disconnect(self, websocket: WebSocket, user: str):
-        self.active_connections.remove((websocket, user))
-
-    async def broadcast(self, data):
-        for connection in self.active_connections:
-            await connection[0].send_json(data)    
-
-manager = SocketManager()
+manager = models.chat.SocketManager()
 
 
 @app.websocket("/chat")
-async def chat(websocket: WebSocket):
-    # sender = websocket.cookies.get("X-Authorization")
-    sender = "beigo"
-    print(f"sender: {sender}")
-    if sender:
-        await manager.connect(websocket, sender)
+async def chat(
+    websocket: WebSocket,
+    user: Union[str, None] = Query(default=None)
+):
+    if user:
+        await manager.connect(websocket, user)
         response = {
-            "user": sender,
+            "user": user,
             "status": "connected"
         }
         await manager.broadcast(response)
@@ -76,9 +63,15 @@ async def chat(websocket: WebSocket):
                 print(f"data: {data}")
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
-            manager.disconnect(websocket, sender)
+            manager.disconnect(websocket, user)
             response['status'] = "disconnected"
             await manager.broadcast(response)
+        except websockets.ConnectionClosed as e:
+            print(f"Error: {e}")
+            await manager.broadcast(response)
+        except Exception as e:
+            print(f"Error: {e}")
+            # break
 
 
 @app.get("/login/{code}")
