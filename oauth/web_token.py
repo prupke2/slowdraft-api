@@ -68,8 +68,8 @@ def get_user_from_auth_token(token):
     try:
         return decode_web_token(token)
     except jwt.ExpiredSignatureError:
-        print("Web token expired", 401)
-        return util.return_error('expired_token')
+        print("Web token expired")
+        return util.return_error('expired_token', 401)
     except (jwt.InvalidTokenError, KeyError):
         print("Missing or invalid token.")
         return util.return_error('invalid_token', 403)
