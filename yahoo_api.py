@@ -27,7 +27,7 @@ def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
             return json.loads(response.content)
     # a 401 response is expected if the access token has expired.
     # if this happens, use the refresh token to get a new one
-    elif response.status_code == 401 and b"token_expired" in response.content:
+    elif response.status_code == 401 and (b"token_expired" or b"Invalid cookie" in response.content):
         print("Token Expired. Attempting to renew using refresh token.")
         refresh_attempts = 0
         # attempt to get a new token 3 times
