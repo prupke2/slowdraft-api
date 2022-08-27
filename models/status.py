@@ -6,6 +6,8 @@ import yahoo_api
 import db
 
 def get_updates_with_league(yahoo_league_id, team_key):
+    if yahoo_league_id == None or team_key == None:
+    	return {'success': False, 'updates': None, 'drafting_now': False}
     database = db.DB()
     database.cur.execute(
         "SELECT * FROM updates WHERE yahoo_league_id = %s", yahoo_league_id)
