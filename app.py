@@ -81,7 +81,7 @@ def login(code: str):
 
 
 @app.post('/select_league')
-async def league_selection(league: SelectLeague, authorization: str = Header(None)):
+def league_selection(league: SelectLeague, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return select_league(user, league.league_key)
 
