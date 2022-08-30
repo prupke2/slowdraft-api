@@ -4,6 +4,12 @@ import yahoo_api
 import db
 import config
 
+
+class AddKeeperPlayerForm(BaseModel):
+		team_key: str
+		player_id: int
+
+
 def get_teams_from_db(draft_id):
 	database = db.DB()
 	sql = """

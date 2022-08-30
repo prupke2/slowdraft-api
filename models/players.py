@@ -10,10 +10,20 @@ import datetime
 # 	# position = SelectField('Position')
 # 	showdrafted = BooleanField('showdrafted')
 
+
+
+class InsertPlayerForm(BaseModel):
+		name: str
+		player_id: int
+		team: str
+		positions: list
+
+
+
 def insert_db_player(name, player_id, team, positions_array, draft_id):
 	separator = " / "
 	positions_string = separator.join(positions_array)
-	player_key = "403.p." + player_id
+	player_key = "403.p." + str(player_id)
 	database = db.DB()
 	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position, prospect) VALUES (%s, %s, %s, %s, %s, 1)"
 	database.cur.execute(query, (name, player_id, player_key, team, positions_string))

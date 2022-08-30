@@ -45,6 +45,11 @@ app.add_middleware(
 manager = models.chat.SocketManager()
 
 
+@app.get("/health")
+def health():
+    return 200
+
+
 @app.websocket("/chat")
 async def chat(
     websocket: WebSocket,
@@ -158,11 +163,82 @@ async def edit_rule(post: RulePostForm, authorization: str = Header(None)):
     return update_rule(post, user)
 
 
+# -------------------------- Draft routes --------------------------
+
+
 @app.get('/get_draft')
 # @exception_handler
 async def get_dps(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return get_draft(user['draft_id'], user['team_key'])
+
+
+@app.get('/draft/{player_id}')
+# @exception_handler
+async def draft_player(player_id, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return make_pick(user['draft_id'], player_id, user['team_key'])
+
+
+
+# -------------------------- Admin routes --------------------------
+
+
+@app.post('/make_pick')
+# @exception_handler
+# @check_if_admin
+async def draft_player_admin(post: MakePickForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return make_pick(user['draft_id'], post.player_id, post.team_key)
+
+
+@app.post('/update_pick')
+# @exception_handler
+# @check_if_admin
+async def update_pick(post: UpdatePickForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return change_pick(post.team_key, post.overall_pick, user['yahoo_league_id'], user['draft_id'])
+
+
+@app.post('/update_pick_enablement')
+# @exception_handler
+# @check_if_admin
+async def toggle_pick(post: TogglePickForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return toggle_pick_enabled(post.overall_pick, user['draft_id'])
+
+
+@app.post('/insert_player')
+# @exception_handler
+# @check_if_admin
+async def insert_player(post: InsertPlayerForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return insert_db_player(post.name, post.player_id, post.team, post.positions, user['draft_id'])
+
+
+@app.post('/add_keeper_player')
+# @exception_handler
+# @check_if_admin
+async def add_keeper_player(post: AddKeeperPlayerForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return add_keeper(post.team_key, post.player_id, user['draft_id'])
+
+
+@app.post('/add_new_pick')
+# @exception_handler
+# @check_if_admin
+async def add_new_pick(post: AddNewPickForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return add_pick_to_draft(user['draft_id'], user['yahoo_league_id'], post.team_key)
+
+
+@app.post('/create_draft')
+# @exception_handler
+# @check_if_admin
+def create_draft(post: CreateNewDraftForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return create_new_draft(user, post.teams, post.rounds, False, post.team_order)
+
 
 # ____________________________________________________
 

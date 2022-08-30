@@ -3,6 +3,30 @@ import db
 from models import emails
 from models import status
 
+class MakePickForm(BaseModel):
+		player_id: int
+		team_key: str
+
+
+class UpdatePickForm(BaseModel):
+		team_key: str
+		overall_pick: int
+
+
+class TogglePickForm(BaseModel):
+		overall_pick: int
+
+
+class AddNewPickForm(BaseModel):
+		team_key: str
+
+
+class CreateNewDraftForm(BaseModel):
+		teams: list
+		rounds: int
+		team_order: list
+
+
 def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	database = db.DB()
 	delete_existing_draft_if_exists(database, user)
