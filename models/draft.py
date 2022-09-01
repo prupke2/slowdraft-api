@@ -238,10 +238,10 @@ def toggle_pick_enabled(overall_pick, draft_id):
 
 def make_pick(draft_id, player_id, team_key):
 	if check_if_taken(draft_id, player_id) == True:
-		return return_error('already_drafted')
+		return return_error('Error: This player has already been drafted.')
 	pick = get_earliest_pick(draft_id, team_key)
 	if pick is None:
-		return return_error('no_remaining_picks')
+		return return_error('Error: You have no remaining picks.')
 	commit_pick(draft_id, player_id, team_key, pick['overall_pick'])
 	next_pick = check_next_pick(draft_id, pick['overall_pick'])
 	if next_pick is None:
