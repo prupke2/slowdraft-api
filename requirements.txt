@@ -19,10 +19,13 @@ pydantic==1.9.0
 PyJWT==2.3.0
 PyMySQL==1.0.2
 python-dotenv==0.20.0
+python-http-client==3.3.7
 PyYAML==6.0
 requests==2.27.1
+sendgrid==6.9.7
 smmap==5.0.0
 sniffio==1.2.0
+starkbank-ecdsa==2.0.3
 starlette==0.17.1
 stevedore==3.5.0
 toml==0.10.2
@@ -31,5 +34,5 @@ urllib3==1.26.9
 uvicorn==0.17.6
 uvloop==0.16.0
 watchgod==0.8.2
-websockets==10.1
+websockets==10.3
 xmltodict==0.12.0
