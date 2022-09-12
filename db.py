@@ -3,6 +3,16 @@ import pymysql.cursors
 import config
 import app
 
+# Comment out the lines below when scraping
+# import credentials
+# config.host, config.user, config.password, config.db = credentials.get_local_DB()
+# config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
+# config.yahoo_league_id = credentials.yahoo_league_id
+# config.league_id = credentials.league_id
+# config.draft_id = credentials.draft_id
+# config.client_id = credentials.consumer_key
+# config.client_secret = credentials.consumer_secret
+# config.redirect_uri = "oob"
 
 class DB(object):
 

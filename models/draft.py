@@ -2,6 +2,7 @@ from app import *
 import db
 from models import emails
 from models import status
+from config import YAHOO_PLAYER_DB
 
 class MakePickForm(BaseModel):
 		player_id: int
@@ -151,14 +152,14 @@ def get_draft(draft_id, team_key):
 	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
 	draft = database.cur.fetchone()
 
-	sql = """
+	sql = f"""
 			SELECT d.*, u.yahoo_team_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position, y.headshot
 			FROM draft_picks d 
 			INNER JOIN users u 
 				ON u.team_key = d.team_key
-		 	LEFT JOIN yahoo_db_21 y 
+		 	LEFT JOIN {YAHOO_PLAYER_DB} y 
 				ON y.player_id = d.player_id 
-			WHERE d.draft_id = %s 
+			WHERE d.draft_id = %s
 			ORDER BY overall_pick
 		"""
 	database.cur.execute(sql, draft_id)
@@ -276,7 +277,7 @@ def check_if_taken(draft_id, player_id):
 
 def get_one_player_from_db(player_id):
 	database = db.DB()
-	sql = "SELECT * FROM yahoo_db_21 WHERE player_id = %s"
+	sql = f"SELECT * FROM {YAHOO_PLAYER_DB} WHERE player_id = %s"
 	database.cur.execute(sql, player_id)
 	return database.cur.fetchone()	
 

@@ -104,7 +104,6 @@ def organize_stat_data(stats):
             stat_list = stat_set['player_stats']['stats']['stat']
 
             for stat in stat_list:
-
                 # creates a temporary dictionary for each player's stats which
                 # is appended to player_stats[] after each loop
                 stat_data = {}
@@ -130,9 +129,9 @@ def organize_stat_data(stats):
             stat_data['value'] = stat['value']
             stat_data['player_id'] = stats['fantasy_content']['players']['player']['player_id']
             if stats['fantasy_content']['players']['player']['position_type'] == 'G':
-                stat_index = GOALIE_STAT_INDEX
+                stat_index = config.GOALIE_STAT_INDEX
             else:
-                stat_index = SKATER_STAT_INDEX
+                stat_index = config.SKATER_STAT_INDEX
             for key in stat_index:
                 if key == str(stat_data['stat_id']):
                     stat_data['stat'] = stat_index[key]
@@ -155,7 +154,7 @@ def organize_player_keys(players):
 def check_if_prospect(id):
     print("ID: " + str(id))
     database = db.DB()
-    sql = "SELECT prospect, careerGP, NHLid FROM yahoo_db_21 WHERE player_id = %s"
+    sql = f"SELECT prospect, careerGP, NHLid FROM {YAHOO_PLAYER_DB} WHERE player_id = %s"
     database.cur.execute(sql, [str(id)])
     player = database.cur.fetchone()
     # print(str(result))

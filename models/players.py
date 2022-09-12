@@ -25,7 +25,7 @@ def insert_db_player(name, player_id, team, positions_array, draft_id):
 	positions_string = separator.join(positions_array)
 	player_key = "403.p." + str(player_id)
 	database = db.DB()
-	query = "INSERT INTO yahoo_db_21(name, player_id, player_key, team, position, prospect) VALUES (%s, %s, %s, %s, %s, 1)"
+	query = f"INSERT INTO {YAHOO_PLAYER_DB}(name, player_id, player_key, team, position, prospect) VALUES (%s, %s, %s, %s, %s, 1)"
 	database.cur.execute(query, (name, player_id, player_key, team, positions_string))
 	database.connection.commit()
 
@@ -42,9 +42,9 @@ def get_db_players(draft_id, position):
 		"(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS 'owner_color', "
 	if position == "G":
 		query += "y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
-					+ "`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM yahoo_db_21 y "
+					+ f"`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM {YAHOO_PLAYER_DB} y "
 	else:
-		query += "y.* FROM yahoo_db_21 y "
+		query += f"y.* FROM {YAHOO_PLAYER_DB} y "
 	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
 
 	if position == "G":

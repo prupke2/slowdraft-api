@@ -101,6 +101,9 @@ NHL_TEAM_ID_TO_SHORT_NAME = {
     55: 'Sea'
 }
 
+# Current table name of player DB
+YAHOO_PLAYER_DB = 'yahoo_db_22'
+
 # Yahoo endpoints
 YAHOO_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2/'
 GET_TOKEN_URL = 'https://api.login.yahoo.com/oauth2/get_token'  # used for Oauth
