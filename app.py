@@ -125,8 +125,8 @@ async def forum(authorization: str = Header(None)):
     return get_forum_posts(user['yahoo_league_id'])
 
 
-@app.post('/new_forum_post')
-async def post_to_forum(post: ForumPostForm, authorization: str = Header(None)):
+@app.post('/create_post')
+async def create_post(post: ForumPostForm, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return new_forum_post(post, user)
 

@@ -6,8 +6,7 @@ from util import return_error
 
 class ForumPostForm(BaseModel):
 		id: Union[int, None]
-		parent_id: int
-		user: object
+		parent_id: Union[int, None]
 		title: Union[str, None]
 		body: str
 
