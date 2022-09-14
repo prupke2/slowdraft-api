@@ -35,7 +35,7 @@ def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	sql = """
 		INSERT INTO draft (yahoo_league_id, league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
 											rounds, per_pick, current_pick, keeper_total, keeper_goalies)
-		VALUES (%s, 54, '2022-09-24 13:00:00', 0, %s, 0, 
+		VALUES (%s, 54, '2022-09-16 13:00:00', 0, %s, 0, 
 						%s, 1, 1, 10, 2);
 	"""
 	is_snake_draft = 1 if snake_draft is True else 0
@@ -45,9 +45,14 @@ def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	draft_id = util.get_last_row_inserted('draft', 'draft_id')
 	color_codes = ["#ffffff", "#33358c", "#6dbc69", "#000000", "#c80707", "#f85df9", "#4064f9", "#dc930c", "#99f2a3", "#b9f860", "#26d092", "#44aaaf"]
 
-	set_users(database, teams, yahoo_league_id, color_codes)
+	set_users(database, user['yahoo_team_id'], teams, yahoo_league_id, color_codes)
+	print("users set")
 	set_draft_order(database, draft_id, yahoo_league_id, user['team_key'], team_order)
+	print("draft order set")
 	set_draft_picks(database, draft_id, rounds, snake_draft)
+	print("draft picks set")
+	set_updates_table(database, yahoo_league_id, draft_id)
+	print("updates table set")
 
 	if user['draft_id'] is not None:
 		return {'success': True}
@@ -57,6 +62,7 @@ def create_new_draft(user, teams, rounds, snake_draft, team_order):
 
 def delete_existing_draft_if_exists(database, user):
 	draft_id = user['draft_id']
+	print(f"Deleting draft_id: {draft_id}")
 	if draft_id is None:
 		return
 	else:
@@ -64,29 +70,44 @@ def delete_existing_draft_if_exists(database, user):
 			sql = "DELETE FROM draft_order WHERE yahoo_league_id = %s"
 			database.cur.execute(sql, (user['yahoo_league_id']))
 			database.connection.commit()
+			print("deleted draft_order")
 
 			sql = "DELETE FROM draft_picks WHERE draft_id = %s"
 			database.cur.execute(sql, (user['draft_id']))
 			database.connection.commit()
-			
-			sql = "DELETE FROM draft WHERE yahoo_league_id = %s"
+			print("deleted draft_picks")
+
+			sql = "DELETE FROM updates WHERE draft_id = %s"
+			database.cur.execute(sql, (draft_id))
+			database.connection.commit()
+			print("deleted draft_picks")
+
+			sql = "DELETE FROM draft WHERE draft_id = %s"
+			database.cur.execute(sql, (user['draft_id']))
+			database.connection.commit()
+			print("deleted draft")
+
+			sql = "DELETE FROM users WHERE yahoo_league_id = %s"
 			database.cur.execute(sql, (user['yahoo_league_id']))
 			database.connection.commit()
+			print("deleted users")
+
 		except Exception as e:
 			print(f"Error deleting draft: {e}")
 		return
 
-def set_users(database, teams, yahoo_league_id, color_codes):
+def set_users(database, yahoo_team_id, teams, yahoo_league_id, color_codes):
 	sql = """
 		INSERT INTO users(
-			name, email, username, yahoo_league_id, yahoo_team_id, team_key, color
+			name, email, username, yahoo_league_id, yahoo_team_id, team_key, color, role
 		)
-		VALUES (%s, %s, %s, %s, %s, %s, %s);
+		VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
 	"""
 	for team in teams:
+		role = 'admin' if team['yahoo_team_id'] == yahoo_team_id else 'user'
 		color = color_codes[int(team['yahoo_team_id']) - 1]
 		database.cur.execute(sql, ( \
-			team['user'], team['email'], team['team_name'], yahoo_league_id, team['yahoo_team_id'], team['team_key'], color\
+			team['user'], team['email'], team['team_name'], yahoo_league_id, team['yahoo_team_id'], team['team_key'], color, role \
 		))
 		database.connection.commit()
 	return
@@ -126,6 +147,17 @@ def set_draft_picks(database, draft_id, rounds, snake):
 			else:
 				overall_pick_count += 1
 
+def set_updates_table(database, yahoo_league_id, draft_id):
+	sql = """INSERT INTO updates(
+						latest_draft_update, latest_team_update, latest_forum_update, latest_player_db_update,
+						latest_rules_update, latest_goalie_db_update, yahoo_league_id, draft_id
+					) 
+						VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+				"""
+	now = str(datetime.datetime.utcnow())
+	database.cur.execute(sql, (now, now, now, now, now, now, yahoo_league_id, draft_id))
+	database.connection.commit()
+	return
 # def delete_league_and_picks(draft_id, yahoo_league_id):
 # 	database = db.DB()
 # 	sql = "DELETE FROM draft_order WHERE draft_id=%s"
