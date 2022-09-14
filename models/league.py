@@ -13,7 +13,7 @@ class SelectLeague(BaseModel):
 
 
 def get_leagues(access_token, refresh_token):
-    GET_LEAGUES_URL = YAHOO_BASE_URL + 'users;use_login=1/games;game_keys=411/leagues'
+    GET_LEAGUES_URL = YAHOO_BASE_URL + 'users;use_login=1/games;game_keys=419/leagues'
     try:
         leagues_query = yahoo_api.yahoo_request(GET_LEAGUES_URL, access_token, refresh_token, True)
         if leagues_query == False:
