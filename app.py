@@ -25,7 +25,6 @@ from yahoo_api import *
 import db
 import datetime
 import pymysql
-import download_players
 
 app = FastAPI()
 
