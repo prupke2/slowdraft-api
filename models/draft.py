@@ -1,6 +1,7 @@
 from app import *
 import db
-from models import emails
+# from models import emails
+from models import pd
 from models import status
 from config import YAHOO_PLAYER_DB
 
@@ -80,7 +81,7 @@ def delete_existing_draft_if_exists(database, user):
 			sql = "DELETE FROM updates WHERE draft_id = %s"
 			database.cur.execute(sql, (draft_id))
 			database.connection.commit()
-			print("deleted draft_picks")
+			print("deleted updates")
 
 			sql = "DELETE FROM draft WHERE draft_id = %s"
 			database.cur.execute(sql, (user['draft_id']))
@@ -291,7 +292,10 @@ def make_pick(draft_id, player_id, team_key):
 		drafting_again = False
 		set_drafting_now(team_key, 0)
 		set_drafting_now(next_pick['team_key'], 1)
-		emails.next_pick_email(next_pick['email'])
+		email_success = pd.pd_incident(next_pick['service_id'])
+		if email_success != True:
+			print(f"Error in pd_incident for user {next_pick['team_key']} with service ID {next_pick['service_id']}")
+		# emails.next_pick_email(next_pick['email'])
 	player_data = get_one_player_from_db(player_id)
 	player = []
 	player.extend((player_data['name'], ' ' + player_data['position'], ' ' + player_data['team']))

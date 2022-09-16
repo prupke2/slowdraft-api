@@ -3,7 +3,7 @@ import pymysql.cursors
 import config
 import app
 
-# Comment out the lines below when scraping
+# Uncomment out the lines below when scraping
 # import credentials
 # config.host, config.user, config.password, config.db = credentials.get_local_DB()
 # config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id

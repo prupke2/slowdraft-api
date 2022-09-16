@@ -75,7 +75,7 @@ def oauth_login(code):
             return models.league.register_leagues(token_response['access_token'], token_response['refresh_token'])
         except Exception as e:
             print(f"\nError setting team sessions: {e}\n")
-            return_error('no_team_found')
+            util.return_error('no_team_found')
 
     else:
         print(f"Login error. {response}.")

@@ -19,11 +19,13 @@ from models.draft import *
 from models.team import *
 from models.rules import *
 from models.emails import *
+from models.pd import *
 import models.chat
 from yahoo_api import *
 import db
 import datetime
 import pymysql
+import download_players
 
 app = FastAPI()
 
@@ -57,7 +59,7 @@ async def chat(
 ):
     if user:
         await manager.connect(websocket, user)
-        user_list = await manager.connected_users()
+        user_list = await manager.get_connected_users()
         response = {
             "user": user,
             "status": "connected",
@@ -67,18 +69,21 @@ async def chat(
         try:
             while True:
                 data = await websocket.receive_json()
+                print(data)
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
-            response['status'] = "disconnected"
-            await manager.broadcast(response)
+            # response['status'] = "disconnected"
+            # await manager.broadcast(response)
         except websockets.ConnectionClosed:
             print(f"Connection closed for {user}")
-            await manager.broadcast(response)
+            manager.disconnect(websocket, user)
+            # await manager.broadcast(response)
         except websockets.exceptions.ConnectionClosedError:
             print(f"Connection closed error for {user}")
-            await manager.broadcast(response)
+            manager.disconnect(websocket, user)
+            # await manager.broadcast(response)
         except Exception as e:
             print(f"Error: {e}")
 
@@ -258,6 +263,10 @@ async def startup_event():
         #     ".l." + os.environ['yahoo_league_id']
         # config.draft_id = os.environ['draft_id']
 
+        # get email and pd creds
+        config.from_email = os.environ['from_email']
+        config.pd_api = os.environ['pd_api']
+
         # get DB config
         config.host = os.environ['MYSQL_HOST']
         config.user = os.environ['MYSQL_USER']
@@ -282,9 +291,9 @@ async def startup_event():
         config.league_id = credentials.league_id
         config.draft_id = credentials.draft_id
 
-        # get Pubnub credentials (for chat)
-        config.pubnub_publish_key = credentials.pubnub_publish_key
-        config.pubnub_subscribe_key = credentials.pubnub_subscribe_key
+        # get email and pd creds
+        config.from_email=credentials.from_email
+        config.pd_api=credentials.pd_api
 
         # get local DB credentials
         config.host, config.user, config.password, config.db = credentials.get_local_DB()

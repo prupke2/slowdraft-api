@@ -28,6 +28,8 @@ mail_use_tls = False
 mail_use_ssl = True
 
 sendgrid_key = ''
+from_email=''
+pd_api=''
 
 # NHL.com API endpoints and team IDs
 NEXT_GAME_URL = "https://statsapi.web.nhl.com/api/v1/teams/%s?expand=team.schedule.next"
