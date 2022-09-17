@@ -62,11 +62,11 @@ async def chat(
         response = {
             "user": user,
             "status": "connected",
-						"users": []
+						"users": user_list
         }
-        await manager.broadcast(response)
         try:
             while True:
+                await manager.broadcast(response)
                 data = await websocket.receive_json()
                 print(data)
                 await manager.broadcast(data)
