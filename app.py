@@ -58,7 +58,7 @@ async def chat(
 ):
     if user:
         await manager.connect(websocket, user)
-        # user_list = await manager.get_connected_users()
+        user_list = await manager.get_connected_users()
         response = {
             "user": user,
             "status": "connected",
