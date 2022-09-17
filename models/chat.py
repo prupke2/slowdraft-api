@@ -20,4 +20,4 @@ class SocketManager:
     async def broadcast(self, data):
         for connection in self.active_connections:
             print(f"connection: {connection}")
-            await connection[0].send_json(data)    
+            await connection[0].send_json(data)
