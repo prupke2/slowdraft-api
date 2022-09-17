@@ -72,17 +72,17 @@ async def chat(
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
             print(f"WebSocketDisconnect: {e}")
+            response['status'] = "disconnected"
+            await manager.broadcast(response)
             manager.disconnect(websocket, user)
-            # response['status'] = "disconnected"
-            # await manager.broadcast(response)
         except websockets.ConnectionClosed:
             print(f"Connection closed for {user}")
+            await manager.broadcast(response)
             manager.disconnect(websocket, user)
-            # await manager.broadcast(response)
         except websockets.exceptions.ConnectionClosedError:
             print(f"Connection closed error for {user}")
+            await manager.broadcast(response)
             manager.disconnect(websocket, user)
-            # await manager.broadcast(response)
         except Exception as e:
             print(f"Error: {e}")
 
