@@ -58,16 +58,17 @@ async def chat(
 ):
     if user:
         await manager.connect(websocket, user)
+        user_list = await manager.get_connected_users()
+        response = {
+						"user": user,
+						"status": "connected",
+						"users": user_list
+        }
+        await manager.broadcast(response)
         try:
             while True:
-                user_list = await manager.get_connected_users()
-                response = {
-										"user": user,
-										"status": "connected",
-										"users": user_list
-                }
-                await manager.broadcast(response)
                 data = await websocket.receive_json()
+                # if data is not None:
                 print(data)
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
@@ -86,6 +87,17 @@ async def chat(
         except Exception as e:
             print(f"Error: {e}")
 
+async def broadcast_loop():
+		while True:
+				user_list = await manager.get_connected_users()
+				response = {
+						"user": user,
+						"status": "connected",
+						"users": user_list
+				}
+				await manager.broadcast(response)
+				time.sleep(10)
+				broadcast_loop()
 
 @app.get("/login/{code}")
 def login(code: str):
