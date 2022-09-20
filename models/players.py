@@ -61,10 +61,9 @@ def get_db_players(draft_id, position):
 	return {'success': True, 'players': players}
 
 def get_db_players_new(draft_id, position):
+	# Gets the player list from the current year and the stats from the previous year
 	database = db.DB()
-	skater_stat_columns = "y1.`0`, y1.`1`, y1.`2`, y1.`3`, y1.`4`, y1.`5`, y1.`8`, y1.`14`, y1.`15`, y1.`16`, y1.`31`, y1.`32`"
-	goalie_stat_columns = "y1.`18`, y1.`19`, y1.`22`, CAST(y1.`23` AS CHAR) AS `23`, y1.`24`, y1.`25`, y1.`26`"
-	stats = goalie_stat_columns if position == 'G' else skater_stat_columns
+	stats = GOALIE_STAT_COLUMNS if position == 'G' else SKATER_STAT_COLUMNS
 	where_clause = "y2.position = 'G'" if position == "G" else "y2.position != 'G'"
 
 	query = f"""
@@ -73,6 +72,8 @@ def get_db_players_new(draft_id, position):
 						ut.team_key,
 						y2.name,
 						y2.team,
+						y2.player_id,
+						y2.player_key,
 						y2.position AS 'position',
 						y1.prospect AS 'prospect',
 						y1.careerGP AS 'careerGP',

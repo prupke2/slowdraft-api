@@ -13,17 +13,22 @@ class AddKeeperPlayerForm(BaseModel):
 def get_teams_from_db(draft_id):
 	database = db.DB()
 	sql = f"""
-			SELECT u.yahoo_team_id, u.username, ut.is_keeper, y.name, y.team, y.position, y.prospect, y.player_id, y.headshot,
-				`0`, `1`, `2`, `3`, `4`, `5`, `8`, `14`, `15`, `16`, `31`, `32`, `18`, `19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26`,
-				(	SELECT overall_pick
-					FROM draft_picks dp
-					WHERE draft_id = %s
-					AND player_id = ut.player_id) AS 'overall_pick'
+			SELECT u.yahoo_team_id, u.username, ut.is_keeper, y2.name, y2.team, y2.position, y1.prospect, y2.player_id, y2.headshot,
+				{GOALIE_STAT_COLUMNS},
+				{SKATER_STAT_COLUMNS},
+				(		SELECT overall_pick
+						FROM draft_picks dp
+						WHERE draft_id = %s
+						AND player_id = ut.player_id
+				) AS 'overall_pick'
 			FROM user_team ut
-			JOIN {YAHOO_PLAYER_DB} y ON y.player_id = ut.player_id
+			JOIN {YAHOO_PLAYER_DB} y2
+					ON y2.player_id = ut.player_id
+			JOIN {YAHOO_PLAYER_DB_PREVIOUS_YEAR} y1
+					ON y1.player_id = ut.player_id
 			JOIN users u ON ut.team_key = u.team_key
 			WHERE draft_id = %s
-			ORDER BY u.yahoo_team_id, FIELD(y.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW',
+			ORDER BY u.yahoo_team_id, FIELD(y2.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW',
 				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D', 'G')
 			"""
 	database.cur.execute(sql, (draft_id, draft_id))
