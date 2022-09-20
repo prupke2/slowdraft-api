@@ -103,8 +103,9 @@ NHL_TEAM_ID_TO_SHORT_NAME = {
     55: 'Sea'
 }
 
-# Current table name of player DB
-YAHOO_PLAYER_DB = 'yahoo_db_22'
+# Table nameS of player DB. Previous year is used to add stats
+YAHOO_PLAYER_DB = 'yahoo_db_22_23'
+YAHOO_PLAYER_DB_PREVIOUS_YEAR = 'yahoo_db_22'
 
 # Yahoo endpoints
 YAHOO_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2/'
