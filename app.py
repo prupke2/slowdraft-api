@@ -24,7 +24,7 @@ import models.chat
 from yahoo_api import *
 import db
 import datetime
-import pymysql
+import psycopg2
 
 app = FastAPI()
 
@@ -57,19 +57,21 @@ async def chat(
     user: Union[str, None] = Query(default=None)
 ):
     if user:
+        print(f"websocket user: {user}")
         await manager.connect(websocket, user)
         user_list = await manager.get_connected_users()
         response = {
-						"user": user,
-						"status": "connected",
-						"users": user_list
+            "user": user,
+            "status": "connected",
+            "users": user_list
         }
+        print(f"response: {response}")
         await manager.broadcast(response)
         try:
             while True:
                 data = await websocket.receive_json()
                 # if data is not None:
-                print(data)
+                print(f"ws data: {data}")
                 await manager.broadcast(data)
         except WebSocketDisconnect as e:
             print(f"WebSocketDisconnect: {e}")
@@ -88,16 +90,16 @@ async def chat(
             print(f"Error: {e}")
 
 async def broadcast_loop():
-		while True:
-				user_list = await manager.get_connected_users()
-				response = {
-						"user": user,
-						"status": "connected",
-						"users": user_list
-				}
-				await manager.broadcast(response)
-				time.sleep(10)
-				broadcast_loop()
+    while True:
+        user_list = await manager.get_connected_users()
+        response = {
+            "user": user,
+            "status": "connected",
+            "users": user_list
+        }
+        await manager.broadcast(response)
+        time.sleep(1000)
+        broadcast_loop()
 
 @app.get("/login/{code}")
 def login(code: str):
@@ -112,9 +114,16 @@ def league_selection(league: SelectLeague, authorization: str = Header(None)):
 
 @app.get('/check_for_updates')
 async def check_for_updates_with_user_and_league(authorization: str = Header(None)):
-    user = get_user_from_auth_token(authorization)
-    print(f"Getting updates for {user['team_name']} ({user['team_key']})")
-    return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
+    try:
+      user = get_user_from_auth_token(authorization)
+      print(f"Getting updates for {user['team_name']} ({user['team_key']})")
+      return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
+    except Exception as e:
+      if 'error' in user:
+        print(f"Error in check_for_updates: {user['error']}, status: {user['status']}")
+        return util.return_error(user['error'], user['status'])
+      print(f"Error in check_for_updates: {e}")
+      return util.return_error('unknown')
 
 
 @app.get('/get_db_players')
@@ -272,29 +281,33 @@ async def startup_event():
         config.client_id = os.environ['client_id']
         config.client_secret = os.environ['client_secret']
         config.redirect_uri = "https://slowdraft.netlify.app"
-        config.pubnub_publish_key = os.environ['pubnub_publish_key']
-        config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
+        # config.pubnub_publish_key = os.environ['pubnub_publish_key']
+        # config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
         config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
 
         # get Yahoo league credentials
-        # config.league_key = os.environ['game_key'] + \
-        #     ".l." + os.environ['yahoo_league_id']
-        # config.draft_id = os.environ['draft_id']
+        config.league_key = os.environ['game_key'] + ".l." + os.environ['yahoo_league_id']
+        config.yahoo_league_id = os.environ['yahoo_league_id']
+        config.draft_id = os.environ['draft_id']
+        config.game_key = credentials.game_key
 
         # get email and pd creds
         config.from_email = os.environ['from_email']
         config.pd_api = os.environ['pd_api']
 
         # get DB config
-        config.host = os.environ['MYSQL_HOST']
-        config.user = os.environ['MYSQL_USER']
-        config.password = os.environ['MYSQL_PASSWORD']
-        config.db = os.environ['MYSQL_DB']
-        database = db.DB()
+        config.host = os.environ['DB_HOST']
+        config.user = os.environ['DB_USER']
+        config.password = os.environ['DB_PASSWORD']
+        config.db = os.environ['DB']
 
-        # config.yahoo_league_id = [os.environ['yahoo_league_id']]
-        # config.league_id = os.environ['league_id']
-        # config.draft_id = os.environ['draft_id']
+        database = psycopg2.connect(
+          host=os.environ['DB_HOST'],
+          database=os.environ['DB'],
+          user=os.environ['DB_USER'],
+          password=os.environ['DB_PASSWORD']
+        )
+
     else:
         import credentials
         app.secret_key = credentials.SECRET_KEY
@@ -306,8 +319,8 @@ async def startup_event():
         # get Yahoo league credentials
         config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
         config.yahoo_league_id = credentials.yahoo_league_id
-        config.league_id = credentials.league_id
         config.draft_id = credentials.draft_id
+        config.game_key = credentials.game_key
 
         # get email and pd creds
         config.from_email=credentials.from_email
@@ -315,6 +328,5 @@ async def startup_event():
 
         # get local DB credentials
         config.host, config.user, config.password, config.db = credentials.get_local_DB()
-        database = db.DB()
 
         config.SENDGRID_KEY = credentials.SENDGRID_KEY
