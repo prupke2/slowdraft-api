@@ -36,8 +36,8 @@ def register_leagues(access_token, refresh_token):
     leagues = get_leagues(access_token, refresh_token)
     league_list, registered_count = check_league_registrations(leagues)
     # if registered_count == 1:
-    confirm_league_key = get_registered_league(league_list)
-    if confirm_league_key is None:
+    league_key = get_registered_league(league_list)
+    if league_key is None:
         return util.return_error('invalid_league', 403)
     team_query = get_teams_in_league(
         league_key, access_token, refresh_token)
