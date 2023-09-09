@@ -289,7 +289,7 @@ async def startup_event():
         config.league_key = os.environ['game_key'] + ".l." + os.environ['yahoo_league_id']
         config.yahoo_league_id = os.environ['yahoo_league_id']
         config.draft_id = os.environ['draft_id']
-        config.game_key = credentials.game_key
+        config.game_key = os.environ['game_key']
 
         # get email and pd creds
         config.from_email = os.environ['from_email']
