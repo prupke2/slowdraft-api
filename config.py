@@ -103,12 +103,11 @@ NHL_TEAM_ID_TO_SHORT_NAME = {
     55: 'Sea'
 }
 
-# Table nameS of player DB. Previous year is used to add stats
-YAHOO_PLAYER_DB = 'yahoo_db_22_23'
-YAHOO_PLAYER_DB_PREVIOUS_YEAR = 'yahoo_db_22'
-SKATER_STAT_COLUMNS = "y1.`0`, y1.`1`, y1.`2`, y1.`3`, y1.`4`, y1.`5`, y1.`8`, y1.`14`, y1.`15`, y1.`16`, y1.`31`, y1.`32`"
-GOALIE_STAT_COLUMNS = "y1.`18`, y1.`19`, y1.`22`, CAST(y1.`23` AS CHAR) AS `23`, y1.`24`, y1.`25`, y1.`26`"
-	
+# Table names of player DB. Previous year is used to add stats
+YAHOO_PLAYER_DB = "yahoo_db_23_24"
+YAHOO_PLAYER_DB_PREVIOUS_YEAR = "yahoo_db_22_23"
+SKATER_STAT_COLUMNS = 'y1."0", y1."1", y1."2", y1."3", y1."4", y1."5", y1."8", y1."14", y1."15", y1."16", y1."31", y1."32"'
+GOALIE_STAT_COLUMNS = 'y1."18", y1."19", y1."22", CAST(y1."23" AS CHAR) AS "23", y1."24", y1."25", y1."26"'
 
 # Yahoo endpoints
 YAHOO_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2/'
@@ -119,6 +118,7 @@ client_id = ''
 client_secret = ''
 redirect_uri = ''
 league_key = ''
+game_key = ''
 team_id = ''
 
 # Yahoo Oauth variables set after oauth login
