@@ -296,16 +296,16 @@ async def startup_event():
         config.pd_api = os.environ['pd_api']
 
         # get DB config
-        config.host = os.environ['DB_HOST']
-        config.user = os.environ['DB_USER']
-        config.password = os.environ['DB_PASSWORD']
-        config.db = os.environ['DB']
+        config.host = os.environ['host']
+        config.user = os.environ['user']
+        config.password = os.environ['password']
+        config.db = os.environ['db']
 
         database = psycopg2.connect(
-          host=os.environ['DB_HOST'],
-          database=os.environ['DB'],
-          user=os.environ['DB_USER'],
-          password=os.environ['DB_PASSWORD']
+          host=os.environ['host'],
+          database=os.environ['db'],
+          user=os.environ['user'],
+          password=os.environ['password']
         )
 
     else:
