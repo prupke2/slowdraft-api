@@ -12,15 +12,25 @@ class AddKeeperPlayerForm(BaseModel):
 
 def get_teams_from_db(draft_id):
 	database = db.DB()
+	print(f"draft_id in get_teams_from_db: {draft_id}")
 	sql = f"""
-			SELECT u.yahoo_team_id, u.username, ut.is_keeper, y2.name, y2.team, y2.position, y1.prospect, y2.player_id, y2.headshot,
-				{GOALIE_STAT_COLUMNS},
-				{SKATER_STAT_COLUMNS},
-				(		SELECT overall_pick
-						FROM draft_picks dp
-						WHERE draft_id = %s
-						AND player_id = ut.player_id
-				) AS 'overall_pick'
+			SELECT 	u.yahoo_team_id, 
+							u.username,
+							u.team_key,
+							ut.is_keeper, 
+							y2.name, 
+							y2.team, 
+							y2.position, 
+							y1.prospect, 
+							y2.player_id, 
+							y2.headshot,
+							{GOALIE_STAT_COLUMNS},
+							{SKATER_STAT_COLUMNS},
+							(	SELECT overall_pick
+								FROM draft_picks dp
+								WHERE draft_id = %s
+								AND player_id = ut.player_id
+							) AS "overall_pick"
 			FROM user_team ut
 			JOIN {YAHOO_PLAYER_DB} y2
 					ON y2.player_id = ut.player_id
@@ -28,11 +38,13 @@ def get_teams_from_db(draft_id):
 					ON y1.player_id = ut.player_id
 			JOIN users u ON ut.team_key = u.team_key
 			WHERE draft_id = %s
-			ORDER BY u.yahoo_team_id, FIELD(y2.position, 'LW', 'C', 'RW', 'RW/C', 'RW/LW',
-				 'C/LW/RW', 'C/LW', 'C/RW', 'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D', 'G')
+			ORDER BY u.yahoo_team_id, array_position(array[
+				'LW', 'C', 'RW', 'RW/C', 'RW/LW', 'C/LW/RW', 'C/LW', 'C/RW',
+				'LW/RW', 'LW/C', 'LW/D', 'D/LW', 'RW/D', 'D/RW', 'D', 'G'
+			], y2.position);
 			"""
-	database.cur.execute(sql, (draft_id, draft_id))
-	teams = database.cur.fetchall()
+	database.dict_cur.execute(sql, (draft_id, draft_id))
+	teams = database.dict_cur.fetchall()
 	return {'success': True, 'teams': teams}
 
 def get_yahoo_team(team_id):
@@ -127,20 +139,7 @@ def check_validity_of_keepers(keys):
 		return errors, False
 	else:
 		return keepers, True		
-			
-def delete_keepers():
-	database = db.DB()
-	sql = "DELETE FROM user_team WHERE user_id = %s AND draft_id = %s"		
-	database.cur.execute(sql, (session['user_id'], session['draft_id']))
-	database.connection.commit()
 
-def save_keepers(keepers):
-	database = db.DB()
-	for keeper in keepers:
-		sql = "INSERT INTO user_team(user_id, draft_id, player_id, is_keeper, NHLid) VALUES(%s, %s, %s, %s, %s)"
-		print("\n\n Query: " + str(sql))
-		database.cur.execute(sql, (session['user_id'], session['draft_id'], keeper['player_id'], 1, keeper['NHLid']))
-		database.connection.commit()
 
 def add_keeper(team_key, player_id, draft_id):
 	database = db.DB()
@@ -148,4 +147,6 @@ def add_keeper(team_key, player_id, draft_id):
 	result = database.cur.execute(sql, (team_key, draft_id, player_id, 1))
 	database.connection.commit()
 	util.update('latest_team_update', draft_id)
+	util.update('latest_player_db_update', draft_id)
+	util.update('latest_goalie_db_update', draft_id)
 	return util.return_true()

@@ -4,23 +4,35 @@ import requests
 from app import *
 import yahoo_api
 import db
+from collections import OrderedDict
+import json
 
 def get_updates_with_league(yahoo_league_id, team_key):
     if yahoo_league_id == None or team_key == None:
     	return {'success': False, 'updates': None, 'drafting_now': False}
     database = db.DB()
     database.cur.execute(
-        "SELECT * FROM updates WHERE yahoo_league_id = %s", yahoo_league_id)
+        f"""SELECT latest_draft_update, latest_team_update, latest_forum_update, 
+          latest_player_db_update, latest_rules_update, latest_goalie_db_update
+          FROM updates 
+          WHERE yahoo_league_id = {yahoo_league_id}
+        """)
     updates = database.cur.fetchone()
-    return {'success': True, 'updates': updates, 'drafting_now': check_if_drafting(database, team_key)}
+    updates_json = { 
+      "latest_draft_update": updates[0],
+      "latest_team_update": updates[1],
+      "latest_forum_update": updates[2],
+      "latest_player_db_update": updates[3],
+      "latest_rules_update": updates[4],
+      "latest_goalie_db_update": updates[5]
+    }
+    return {'success': True, 'updates': updates_json, 'drafting_now': check_if_drafting(database, team_key)}
 
 def check_if_drafting(database, team_key):
     sql = "SELECT drafting_now FROM users WHERE team_key = %s"
-    database.cur.execute(sql, team_key)
+    database.cur.execute(sql, [team_key])
     result = database.cur.fetchone()
-    if result and result['drafting_now'] == 1:
-        return True
-    return False
+    return result[0]
 
 # Makes sure the draft session variable is set
 def check_league(f):
@@ -43,7 +55,8 @@ def set_team_sessions(league_key, team_query):
 
     my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
     teams = []
-    for team in team_query['fantasy_content']['league']['teams']['team']:
+    for orderedDictTeam in team_query['fantasy_content']['league']['teams']['team']:
+        team = dict(orderedDictTeam)
         team_data = {}
         # print("TEAM: " + str(team))
         team_data['yahoo_team_id'] = int(team['team_id'])
@@ -62,26 +75,26 @@ def set_team_sessions(league_key, team_query):
 
         if 'is_owned_by_current_login' in team:
             # if session['guid'] == team['managers']['manager']['guid']:
-            print(f"team: {team}")
             my_team_data['yahoo_team_id'] = int(team['team_id'])
             my_team_data['logo'] = team['team_logos']['team_logo']['url']
             my_team_data['team_name'] = team['name']
             my_team_data['team_key'] = team['team_key']
 
-            data = get_user(my_team_data['team_key'],
+            role, color, draft_id, current_pick, is_live = get_user(my_team_data['team_key'],
                             my_team_data['yahoo_league_id'])
-            if data == None:
+            if is_live == None:
                 is_live = False
                 registered = False
                 my_team_data['role'] = 'admin'
             else:
-                my_team_data['role'] = data['role']
-                my_team_data['color'] = data['color']
-                my_team_data['draft_id'] = data['draft_id']
-                my_team_data['current_pick'] = data['current_pick']
-                is_live = data['is_live']
+                my_team_data['role'] = role
+                my_team_data['color'] = color
+                my_team_data['draft_id'] = draft_id
+                my_team_data['current_pick'] = current_pick
+                is_live = is_live
                 registered = True
         teams.append(team_data)
+        print("success!")
     return teams, my_team_data, is_live, registered
 
 
@@ -106,9 +119,7 @@ def check_draft_status(f):
         # draft.checkCurrentPickInDraft()
         sql = "SELECT * FROM draft d LEFT JOIN draft_picks dp ON d.draft_id = dp.draft_id WHERE d.draft_id = %s ORDER BY dp.overall_pick"
         database.cur.execute(sql, session['draft_id'])
-        print("DRAFT ID: " + str(session['draft_id']))
         draft_info = database.cur.fetchone()
-        print("info: \n" + str(draft_info))
         if draft_info['is_live'] == 1:
             session['current_pick'] = draft.getCurrentPickInfo(
                 draft_info['current_pick'])
@@ -120,8 +131,7 @@ def check_draft_status(f):
             sql = "UPDATE draft SET is_live=1, current_pick = 1 WHERE draft_id = %s"
             database.cur.execute(sql, session['draft_id'])
             database.connection.commit()
-            sql = "UPDATE users SET drafting_now = 1 WHERE user_id = %s"
-            print("USER ID: " + str(draft_info['user_id']))
+            sql = "UPDATE users SET drafting_now = TRUE WHERE user_id = %s"
             database.cur.execute(sql, draft_info['user_id'])
             database.connection.commit()
         # print("IS OVER? : " + str(draft_info['is_over']))

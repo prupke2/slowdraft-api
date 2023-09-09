@@ -6,14 +6,14 @@ import oauth.web_token
 from models import status
 import db
 import util
-
+import config
 
 class SelectLeague(BaseModel):
     league_key: str
 
 
 def get_leagues(access_token, refresh_token):
-    GET_LEAGUES_URL = YAHOO_BASE_URL + 'users;use_login=1/games;game_keys=419/leagues'
+    GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={config.game_key}/leagues'
     try:
         leagues_query = yahoo_api.yahoo_request(GET_LEAGUES_URL, access_token, refresh_token, True)
         if leagues_query == False:
@@ -35,21 +35,23 @@ def get_leagues(access_token, refresh_token):
 def register_leagues(access_token, refresh_token):
     leagues = get_leagues(access_token, refresh_token)
     league_list, registered_count = check_league_registrations(leagues)
-    if registered_count == 1:
-        league_key = get_registered_league(league_list)
-        team_query = get_teams_in_league(
-            league_key, access_token, refresh_token)
-        teams, my_team_data, is_live_draft, registered = status.set_team_sessions(
-            league_key, team_query)
-        web_token = oauth.web_token.generate_web_token(
-            leagues, my_team_data, access_token, refresh_token)
-    else:
-        my_team_data = None
-        teams = None
-        is_live_draft = None
-        registered = registered_count > 0
-        web_token = oauth.web_token.generate_temp_web_token(
-            league_list, access_token, refresh_token)
+    # if registered_count == 1:
+    confirm_league_key = get_registered_league(league_list)
+    if confirm_league_key is None:
+        return util.return_error('invalid_league', 403)
+    team_query = get_teams_in_league(
+        league_key, access_token, refresh_token)
+    teams, my_team_data, is_live_draft, registered = status.set_team_sessions(
+        league_key, team_query)
+    web_token = oauth.web_token.generate_web_token(
+        leagues, my_team_data, access_token, refresh_token)
+    # else:
+    #     my_team_data = None
+    #     teams = None
+    #     is_live_draft = None
+    #     registered = registered_count > 0
+    #     web_token = oauth.web_token.generate_temp_web_token(
+    #         league_list, access_token, refresh_token)
     print(f"\nNEW LOGIN: {my_team_data}\n")
 
     return {
@@ -67,12 +69,15 @@ def register_leagues(access_token, refresh_token):
 
 def get_registered_league(league_list):
     for league in league_list:
-        if league['registered'] == True:
+        if league['league_key'] == config.league_key:
             return league['league_key']
+    return None
 
 
 def validate_league_key(league_list, league_key):
     for league in league_list:
+        print(f"league['league_key']: {league['league_key']}")
+        print(f"league_key: {league_key}")
         if league['league_key'] == league_key:
             return True
     return False
@@ -80,24 +85,27 @@ def validate_league_key(league_list, league_key):
 
 def check_league_registrations(leagues):
     database = db.DB()
-    yahoo_league_id_list = []
-    for league in leagues:
-        yahoo_league_id_list.append(league['league_id'])
-
-    league_list = str(yahoo_league_id_list)[1:-1]
+    print(f"leagues: {leagues}")
+    yahoo_league_id_list = [league['league_id'] for league in leagues]
+    print(f"yahoo_league_id_list: {yahoo_league_id_list}")
     sql = f"""
 			SELECT yahoo_league_id
 			FROM yahoo_league
-			WHERE yahoo_league_id IN ({league_list})
+			WHERE yahoo_league_id IN ({str(yahoo_league_id_list)[1:-1]})
 		"""
-    database.cur.execute(sql)
-    leagues_query = database.cur.fetchall()
+    print(f"sql: {sql}")
+    database.dict_cur.execute(sql)
+    leagues_query = database.dict_cur.fetchall()
+    print(f"leagues_query: {leagues_query}")
+    # print(f"type(leagues_query): {type(leagues_query)}")
     registered_leagues = []
     for i, league in enumerate(leagues_query):
-        registered_leagues.append(leagues_query[i]['yahoo_league_id'])
+        print(f"league: {league}")
+        registered_leagues.append(league)
     for league in leagues:
         league['registered'] = int(league['league_id']) in registered_leagues
     print(f"\n\nLEAGUES: {leagues}\n\n")
+    print(f"registered_leagues: {registered_leagues}")
     return leagues, len(registered_leagues)
 
 

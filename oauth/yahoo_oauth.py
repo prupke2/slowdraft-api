@@ -72,7 +72,8 @@ def oauth_login(code):
     if response.status_code >= 200 and response.status_code <= 203:
         token_response = response.json()
         try:
-            return models.league.register_leagues(token_response['access_token'], token_response['refresh_token'])
+            register_attempt = models.league.register_leagues(token_response['access_token'], token_response['refresh_token'])
+            return register_attempt
         except Exception as e:
             print(f"\nError setting team sessions: {e}\n")
             util.return_error('no_team_found')

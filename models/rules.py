@@ -12,8 +12,8 @@ class RulePostForm(BaseModel):
 
 def get_rules(yahoo_league_id):
 	database = db.DB()
-	database.cur.execute("SELECT * FROM rules WHERE yahoo_league_id = %s ORDER BY `order`", [yahoo_league_id])
-	return {'success': True, 'rules': database.cur.fetchall()}
+	database.dict_cur.execute("""SELECT * FROM rules WHERE yahoo_league_id = %s ORDER BY "order" """, [yahoo_league_id])
+	return {'success': True, 'rules': database.dict_cur.fetchall()}
 
 def new_rule(post, user):
 	try:

@@ -38,11 +38,15 @@ def insert_db_player(name, player_id, team, positions_array, draft_id):
 
 def get_db_players(draft_id, position):
 	database = db.DB()
-	query = "SELECT DISTINCT (SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS 'user', " \
-		"(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS 'owner_color', "
+	query = """
+		SELECT DISTINCT 
+			(SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS "user",
+			(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS "owner_color",
+		"""
 	if position == "G":
-		query += "y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, `18`, " \
-					+ f"`19`, `22`, CAST(`23` AS CHAR) AS `23`, `24`, `25`, `26` FROM {YAHOO_PLAYER_DB} y "
+		query += """
+			y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, "18", 
+		""" + f""" "19", "22", CAST("23" AS CHAR) AS "23", "24", "25", "26" FROM {YAHOO_PLAYER_DB} y """
 	else:
 		query += f"y.* FROM {YAHOO_PLAYER_DB} y "
 	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
@@ -68,16 +72,17 @@ def get_db_players_new(draft_id, position):
 
 	query = f"""
 			SELECT DISTINCT
-						(SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS 'user', 
+						(SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS "user", 
 						ut.team_key,
 						y2.name,
 						y2.team,
 						y2.player_id,
 						y2.player_key,
-						y2.position AS 'position',
-						y1.prospect AS 'prospect',
-						y1.careerGP AS 'careerGP',
-						y2.headshot AS 'headshot',
+						y2.position AS "position",
+						y2.prospect AS "prospect",
+						y2.careerGP AS "careerGP",
+						y2.headshot AS "headshot",
+						y2.ir,
 						{stats}
 			FROM {YAHOO_PLAYER_DB} y2
 			LEFT JOIN user_team ut 
@@ -100,8 +105,8 @@ def get_db_players_new(draft_id, position):
 	# else:
 	# 	query += "position != 'G';"
 	
-	result = database.cur.execute(query)	
-	players = database.cur.fetchall()
+	result = database.dict_cur.execute(query)	
+	players = database.dict_cur.fetchall()
 	player_array = []
 	for player in players:
 		player_array.append(player)

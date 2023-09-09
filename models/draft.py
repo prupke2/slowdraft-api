@@ -4,6 +4,8 @@ import db
 from models import pd
 from models import status
 from config import YAHOO_PLAYER_DB
+import config
+import json
 
 class MakePickForm(BaseModel):
 		player_id: int
@@ -34,16 +36,17 @@ def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	delete_existing_draft_if_exists(database, user)
 	yahoo_league_id = user['yahoo_league_id']
 	sql = """
-		INSERT INTO draft (yahoo_league_id, league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
+		INSERT INTO draft (yahoo_league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
 											rounds, per_pick, current_pick, keeper_total, keeper_goalies)
-		VALUES (%s, 54, '2022-09-16 13:00:00', 0, %s, 0, 
-						%s, 1, 1, 10, 2);
+		VALUES (%s, '2023-09-16 13:00:00', 0, %s, 0, 
+						%s, 1, 1, 10, 2)
+		RETURNING draft_id;
 	"""
 	is_snake_draft = 1 if snake_draft is True else 0
 	database.cur.execute(sql, (yahoo_league_id, is_snake_draft, rounds))
+	draft_id_query = database.cur.fetchone()
+	draft_id = draft_id_query[0]
 	database.connection.commit()
-
-	draft_id = util.get_last_row_inserted('draft', 'draft_id')
 	color_codes = ["#ffffff", "#33358c", "#6dbc69", "#000000", "#c80707", "#f85df9", "#4064f9", "#dc930c", "#99f2a3", "#b9f860", "#26d092", "#44aaaf"]
 
 	set_users(database, user['yahoo_team_id'], teams, yahoo_league_id, color_codes)
@@ -126,8 +129,8 @@ def set_draft_order(database, draft_id, yahoo_league_id, team_key, team_order):
 
 def set_draft_picks(database, draft_id, rounds, snake):
 	overall_pick_count = 1
-	sql = "SELECT * FROM draft_order d INNER JOIN users u ON d.team_key = u.team_key WHERE d.draft_id = %s ORDER BY draft_order"
-	user_count = database.cur.execute(sql, draft_id)
+	sql = "SELECT DISTINCT u.team_key, d.draft_order FROM draft_order d INNER JOIN users u ON d.team_key = u.team_key WHERE d.draft_id = %s ORDER BY draft_order;"
+	user_count = database.cur.execute(sql, [draft_id])
 	users = database.cur.fetchall()
 	print("Setting picks...\n")
 	for round in range(1, int(rounds) + 1):
@@ -141,7 +144,7 @@ def set_draft_picks(database, draft_id, rounds, snake):
 					overall_pick_count +=1
 		for user in users:
 			sql = "INSERT INTO draft_picks(draft_id, team_key, overall_pick, round) VALUES(%s, %s, %s, %s)"
-			database.cur.execute(sql, (draft_id, user['team_key'], overall_pick_count, round))
+			database.cur.execute(sql, [draft_id, user[0], overall_pick_count, round])
 			database.connection.commit()
 			if (snake == True) and (round % 2 == 0):
 				overall_pick_count -= 1
@@ -182,11 +185,19 @@ def set_updates_table(database, yahoo_league_id, draft_id):
 
 def get_draft(draft_id, team_key):
 	database = db.DB()
-	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
-	draft = database.cur.fetchone()
-
+	sql = """
+			SELECT current_pick, 
+			to_char(draft_start_time_utc, 'YYYY/MM/DD HH:MM:SS') as draft_start_time_utc, 
+			is_live, 
+			is_snake_draft, 
+			is_over
+			FROM draft 
+			WHERE draft_id = %s"""
+	database.dict_cur.execute(sql, [draft_id])
+	draft = database.dict_cur.fetchone()
 	sql = f"""
-			SELECT d.*, u.yahoo_team_id, u.color, u.username, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position, y.headshot
+			SELECT d.*, 
+			u.yahoo_team_id, u.username, u.team_key, y.player_id, y.name AS player_name, y.prospect, y.careerGP, y.team, y.position, y.headshot
 			FROM draft_picks d 
 			INNER JOIN users u 
 				ON u.team_key = d.team_key
@@ -195,21 +206,18 @@ def get_draft(draft_id, team_key):
 			WHERE d.draft_id = %s
 			ORDER BY overall_pick
 		"""
-	database.cur.execute(sql, draft_id)
-	draft_picks = database.cur.fetchall()
+	database.dict_cur.execute(sql, [draft_id])
+	draft_picks = database.dict_cur.fetchall()
 	current_pick = get_current_pick_info(draft['current_pick'], draft_id)
-
-	database.cur.execute("SELECT drafting_now FROM users WHERE team_key=%s", team_key)
-	result = database.cur.fetchone()
-	drafting_now = False
-	if result['drafting_now'] == 1:
-		drafting_now = True
+	database.dict_cur.execute("SELECT drafting_now FROM users WHERE team_key=%s", [team_key])
+	result = database.dict_cur.fetchone()
+	drafting_now = result['drafting_now']
 
 	return {
 		'success': True,
-		'draft': draft, 
+		'draft': draft,
 		'drafting_now': drafting_now, 
-		'picks': draft_picks, 
+		'picks': draft_picks,
 		'current_pick': current_pick
 	}
 
@@ -224,17 +232,16 @@ def get_all_users():
 def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
-	database.cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.team_key = dp.team_key \
+	database.dict_cur.execute("SELECT * FROM draft_picks dp INNER JOIN users u ON u.team_key = dp.team_key \
 					WHERE dp.overall_pick = %s AND draft_id=%s", (overall_pick, draft_id))
-	old_user = database.cur.fetchone()
-	if old_user['drafting_now'] == 1:
-		# Make sure this user doesn't have any other active picks before settings drafting_now = 0
-		pick_check = database.cur.execute("SELECT * FROM draft_picks WHERE draft_id = %s AND team_key = %s \
+	old_user = database.dict_cur.fetchone()
+	if old_user['drafting_now'] == True:
+		# Make sure this user doesn't have any other active picks before settings drafting_now = True
+		pick_check = database.dict_cur.execute("SELECT * FROM draft_picks WHERE draft_id = %s AND team_key = %s \
 				AND pick_expires > %s AND overall_pick != %s AND player_id IS NULL",
 					(draft_id, old_user['team_key'], now, overall_pick))
 		if pick_check == 0:
-			database.cur.execute("UPDATE users SET drafting_now = 0 WHERE team_key = %s", [old_user['team_key']])
-			database.connection.commit()
+			set_drafting_now(old_user['team_key'], False)
 
 	database.cur.execute("UPDATE draft_picks SET team_key=%s WHERE overall_pick = %s AND draft_id=%s",
 				(team_key, overall_pick, draft_id))
@@ -243,22 +250,22 @@ def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 	util.update('latest_draft_update', draft_id)
 
 	# check if the pick that was changed is the current pick - if it is, let the new user draft 
-	database.cur.execute("SELECT * FROM draft WHERE draft_id = %s", draft_id)
-	draft = database.cur.fetchone()
+	database.dict_cur.execute("SELECT * FROM draft WHERE draft_id = %s", [draft_id])
+	
+	draft = database.dict_cur.fetchone()
 	if overall_pick == draft['current_pick']:
-		database.cur.execute("UPDATE users SET drafting_now = 1 WHERE team_key = %s", [team_key])
-		database.connection.commit()
+		set_drafting_now(team_key, True)
 	return util.return_true()
 
 def toggle_pick_enabled(overall_pick, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
-	disabled = 1
+	disabled = True
 	database.cur.execute("SELECT disabled FROM draft_picks WHERE overall_pick = %s AND draft_id=%s",
 				(overall_pick, draft_id))	
 	pick = database.cur.fetchone()
-	if pick['disabled'] == 1:
-		disabled = 0
+	if pick[0] == True:
+		disabled = False
 	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
 				(disabled, overall_pick, draft_id))
 	database.connection.commit()
@@ -267,19 +274,19 @@ def toggle_pick_enabled(overall_pick, draft_id):
 	check_current_pick_in_draft(draft_id)
 	util.update('latest_draft_update', draft_id)
 
-	new_status = 'disabled' if disabled == 1 else 'enabled'
+	new_status = 'disabled' if disabled == True else 'enabled'
 	return {'success': True, 'status': new_status}
 
 def make_pick(draft_id, player_id, team_key):
 	if check_if_taken(draft_id, player_id) == True:
-		return return_error('Error: This player has already been drafted.')
+		return return_error('This player has already been drafted.')
 	pick = get_earliest_pick(draft_id, team_key)
 	if pick is None:
-		return return_error('Error: You have no remaining picks.')
+		return return_error('You have no remaining picks.')
 	commit_pick(draft_id, player_id, team_key, pick['overall_pick'])
 	next_pick = check_next_pick(draft_id, pick['overall_pick'])
 	if next_pick is None:
-		set_drafting_now(team_key, 0)
+		set_drafting_now(team_key, False)
 		return {
 			"success": True, 
 			"player": None, 
@@ -290,8 +297,8 @@ def make_pick(draft_id, player_id, team_key):
 		drafting_again = True
 	else:
 		drafting_again = False
-		set_drafting_now(team_key, 0)
-		set_drafting_now(next_pick['team_key'], 1)
+		set_drafting_now(team_key, False)
+		set_drafting_now(next_pick['team_key'], True)
 		email_success = pd.pd_incident(next_pick['service_id'])
 		if email_success != True:
 			print(f"Error in pd_incident for user {next_pick['team_key']} with service ID {next_pick['service_id']}")
@@ -314,8 +321,8 @@ def check_if_taken(draft_id, player_id):
 def get_one_player_from_db(player_id):
 	database = db.DB()
 	sql = f"SELECT * FROM {YAHOO_PLAYER_DB} WHERE player_id = %s"
-	database.cur.execute(sql, player_id)
-	return database.cur.fetchone()	
+	database.dict_cur.execute(sql, [player_id])
+	return database.dict_cur.fetchone()	
 
 def get_earliest_pick(draft_id, team_key):
 	database = db.DB()
@@ -325,11 +332,11 @@ def get_earliest_pick(draft_id, team_key):
 			WHERE player_id IS NULL
 			AND d.draft_id = %s
 			AND d.team_key = %s
-			AND d.disabled = 0
+			AND (d.disabled IS FALSE OR d.disabled IS NULL)
 			ORDER BY d.overall_pick ASC
 		"""
-	database.cur.execute(sql, (draft_id, team_key))
-	return database.cur.fetchone()
+	database.dict_cur.execute(sql, (draft_id, team_key))
+	return database.dict_cur.fetchone()
 
 def commit_pick(draft_id, player_id, team_key, pick):
 	database = db.DB()
@@ -362,11 +369,11 @@ def check_next_pick(draft_id, pick):
 			INNER JOIN users u ON u.team_key = d.team_key
 			WHERE draft_id = %s
 			AND overall_pick > %s
-			AND disabled = 0
+			AND disabled IS NOT TRUE
 			ORDER BY overall_pick
 		"""
-	remainingPicks = database.cur.execute(sql, (draft_id, pick))
-	nextPick = database.cur.fetchone()
+	remainingPicks = database.dict_cur.execute(sql, (draft_id, pick))
+	nextPick = database.dict_cur.fetchone()
 	if nextPick is None:
 		print("nextPick is none")
 		check_current_pick_in_draft(draft_id)
@@ -406,8 +413,8 @@ def get_current_pick_info(pick, draft_id):
 	sql = "SELECT * FROM users u INNER JOIN draft_picks dp ON dp.team_key = u.team_key \
 			WHERE dp.overall_pick = %s AND dp.draft_id = %s"
 
-	database.cur.execute(sql, (pick, draft_id))	
-	current_pick = database.cur.fetchone()
+	database.dict_cur.execute(sql, (pick, draft_id))	
+	current_pick = database.dict_cur.fetchone()
 	return current_pick
 
 def check_current_pick_in_draft(draft_id):
@@ -418,11 +425,11 @@ def check_current_pick_in_draft(draft_id):
 			WHERE draft_id = %s
 			AND pick_expires is NOT NULL
 			AND player_id IS NULL
-			AND disabled = 0
+			AND disabled IS FALSE
 			ORDER BY overall_pick DESC
 		"""
-	database.cur.execute(sql, draft_id)
-	current_pick = database.cur.fetchone()
+	database.dict_cur.execute(sql, [draft_id])
+	current_pick = database.dict_cur.fetchone()
 	print("current: " + str(current_pick))
 	if current_pick is None:
 		sql = "UPDATE draft SET is_live=%s, is_over=%s WHERE draft_id=%s"
@@ -437,12 +444,12 @@ def check_current_pick_in_draft(draft_id):
 
 def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 	database = db.DB()
-	sql = """SELECT MAX(overall_pick) AS 'last_pick'
+	sql = """SELECT MAX(overall_pick) AS "last_pick"
 		FROM draft_picks d
 		WHERE draft_id = %s
 	"""
-	database.cur.execute(sql, draft_id)
-	last_pick = database.cur.fetchone()
+	database.dict_cur.execute(sql, [draft_id])
+	last_pick = database.dict_cur.fetchone()
 	new_pick = last_pick['last_pick'] + 1
 	sql = f"""
 		INSERT INTO draft_picks(draft_id, round, overall_pick, team_key)
