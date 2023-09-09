@@ -13,18 +13,19 @@ class ForumPostForm(BaseModel):
 
 def get_forum_posts(yahoo_league_id):	
 	sql = """
-		SELECT f.id, f.title, f.body, f.yahoo_team_id, f.create_date, f.update_date,
-		u.username, u.role, u.color
-		FROM forum f INNER JOIN users u on u.yahoo_league_id = f.yahoo_league_id
+		SELECT f.id, f.title, f.body, f.yahoo_team_id, f.team_key, f.create_date, f.update_date,
+				u.username, u.role, u.color
+		FROM forum f 
+				INNER JOIN users u on u.yahoo_league_id = f.yahoo_league_id
 		WHERE f.parent_id IS NULL
-		AND f.yahoo_league_id = %s
-		AND f.team_key = u.team_key
+				AND f.yahoo_league_id = %s
+				AND f.team_key = u.team_key
 		ORDER BY update_date DESC
 		"""
 
 	database = db.DB()
-	database.cur.execute(sql, [yahoo_league_id])
-	posts = database.cur.fetchall()
+	database.dict_cur.execute(sql, [yahoo_league_id])
+	posts = database.dict_cur.fetchall()
 	for post in posts:
 		post['create_date'] = post['create_date'] - datetime.timedelta(minutes=int(float(0)))
 		post['update_date'] = post['update_date'] - datetime.timedelta(minutes=int(float(0)))
@@ -33,13 +34,13 @@ def get_forum_posts(yahoo_league_id):
 def get_forum_post(id):
 	sql = "SELECT * FROM forum WHERE id = %s"	
 	database = db.DB()
-	database.cur.execute(sql, id)
-	return {'success': True, 'post': database.cur.fetchone()}
+	database.dict_cur.execute(sql, [id])
+	return {'success': True, 'post': database.dict_cur.fetchone()}
 
 def get_post_replies(yahoo_league_id, post_id):
 	database = db.DB()
 	sql = """
-		SELECT f.id, f.parent_id, f.create_date, f.update_date, f.body, f.title, u.yahoo_team_id, u.username, u.color
+		SELECT f.id, f.parent_id, f.create_date, f.update_date, f.body, f.title, f.team_key, u.yahoo_team_id, u.username, u.color
 		FROM forum f 
 		LEFT JOIN users u 
 		ON u.team_key = f.team_key 
@@ -47,8 +48,8 @@ def get_post_replies(yahoo_league_id, post_id):
 		AND f.parent_id=%s
 		 
 	"""
-	database.cur.execute(sql, [yahoo_league_id, post_id])
-	replies = database.cur.fetchall()
+	database.dict_cur.execute(sql, [yahoo_league_id, post_id])
+	replies = database.dict_cur.fetchall()
 	if replies is False:
 		replies = []
 	else:
