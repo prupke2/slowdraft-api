@@ -13,19 +13,24 @@ def get_expiry():
 
 
 def generate_web_token(league_list, my_team, access_token, refresh_token):
+    draft_id = None
+    color = None
+    if 'draft_id' in my_team:
+        draft_id = my_team['draft_id']
+        color = my_team['color']
     payload = {
         "iss": "SlowDraft",
         "access_token": access_token,
         "refresh_token": refresh_token,
         "exp": get_expiry(),
         "leagues": league_list,
-        "draft_id": my_team['draft_id'],
+        "draft_id": draft_id,
         "yahoo_league_id": my_team['yahoo_league_id'],
         "yahoo_team_id": my_team['yahoo_team_id'],
         "team_key": my_team['team_key'],
         "team_name": my_team['team_name'],
         "role": my_team['role'],
-        "color": my_team['color']
+        "color": color
     }
     return jwt.encode(payload, config.client_secret, algorithm="HS256")
 
