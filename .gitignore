@@ -124,6 +124,7 @@ dmypy.json
 # local config
 credentials.py
 download_players.py
+create_db.sql
 .DS_Store
 
 # vscode
