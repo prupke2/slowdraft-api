@@ -20,6 +20,7 @@ from models.team import *
 from models.rules import *
 from models.emails import *
 from models.pd import *
+from models.doc import *
 import models.chat
 from yahoo_api import *
 import db
@@ -271,6 +272,13 @@ def create_draft(post: CreateNewDraftForm, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return create_new_draft(user, post.teams, post.rounds, False, post.team_order)
 
+# -------------------------- Doc routes --------------------------
+
+@app.get('/get_doc_url')
+def get_doc_url(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_url(user)
+
 
 # ____________________________________________________
 
@@ -294,6 +302,9 @@ async def startup_event():
         # get email and pd creds
         config.from_email = os.environ['from_email']
         config.pd_api = os.environ['pd_api']
+
+        # get doc config
+        config.url = os.environ['url']
 
         # get DB config
         config.host = os.environ['host']
@@ -325,6 +336,9 @@ async def startup_event():
         # get email and pd creds
         config.from_email=credentials.from_email
         config.pd_api=credentials.pd_api
+
+        # get doc config
+        config.url = credentials.url
 
         # get local DB credentials
         config.host, config.user, config.password, config.db = credentials.get_local_DB()
