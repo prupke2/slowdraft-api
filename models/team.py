@@ -21,7 +21,7 @@ def get_teams_from_db(draft_id):
 							y2.name, 
 							y2.team, 
 							y2.position, 
-							y1.prospect, 
+							y2.prospect, 
 							y2.player_id, 
 							y2.headshot,
 							{GOALIE_STAT_COLUMNS},
@@ -34,7 +34,7 @@ def get_teams_from_db(draft_id):
 			FROM user_team ut
 			JOIN {YAHOO_PLAYER_DB} y2
 					ON y2.player_id = ut.player_id
-			JOIN {YAHOO_PLAYER_DB_PREVIOUS_YEAR} y1
+			LEFT JOIN {YAHOO_PLAYER_DB_PREVIOUS_YEAR} y1 -- join used to get stats
 					ON y1.player_id = ut.player_id
 			JOIN users u ON ut.team_key = u.team_key
 			WHERE draft_id = %s
