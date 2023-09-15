@@ -187,7 +187,7 @@ def get_draft(draft_id, team_key):
 	database = db.DB()
 	sql = """
 			SELECT current_pick, 
-			to_char(draft_start_time_utc, 'YYYY/MM/DD HH:MM:SS') as draft_start_time_utc, 
+			to_char(draft_start_time_utc, 'YYYY/MM/DD HH24:MI:SS') as draft_start_time_utc, 
 			is_live, 
 			is_snake_draft, 
 			is_over
