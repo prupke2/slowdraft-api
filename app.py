@@ -89,6 +89,8 @@ async def chat(
         #     # await manager.broadcast(response)
         except Exception as e:
             print(f"Error: {e}")
+            manager.disconnect(websocket, user)
+
 
 async def broadcast_loop():
     while True:

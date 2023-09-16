@@ -11,9 +11,9 @@ import util
 def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
     # pass in a Yahoo fantasy sports URL here
     token = config.access_token if config.access_token else access_token
-    print(f"token: {token}")
+    # print(f"token: {token}")
     refresh_token = config.refresh_token if config.refresh_token else refresh_token
-    print(f"refresh_token: {refresh_token}")
+    # print(f"refresh_token: {refresh_token}")
     header = "Bearer " + token
     url = url if useJson is False else url + '?format=json'
     print(f"Attempting to reach URL: {url}")

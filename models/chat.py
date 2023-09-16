@@ -15,7 +15,9 @@ class SocketManager:
         return user_list
 
     def disconnect(self, websocket: WebSocket, user: str):
+        print(f"{user} disconnected.")
         self.active_connections.remove((websocket, user))
+        print(f"Connection successfully closed for ({websocket}, {user}).")
 
     async def broadcast(self, data):
         for connection in self.active_connections:
