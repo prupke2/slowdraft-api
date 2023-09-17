@@ -25,7 +25,7 @@ def get_access_token(client_id, client_secret, redirect_uri, code):
         'redirect_uri': str(redirect_uri)
     }
     response = requests.post(config.GET_TOKEN_URL, headers=headers, data=data)
-    print("\nResponse: " + str(response))
+    # print("\nResponse: " + str(response))
     print(str(response.json()))
     return response
 

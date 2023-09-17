@@ -77,19 +77,17 @@ async def chat(
         except WebSocketDisconnect as e:
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
-            # response['status'] = "disconnected"
-            # await manager.broadcast(response)
-        # except websocket.ConnectionClosed:
-        #     print(f"Connection closed for {user}")
-        #     manager.disconnect(websocket, user)
-        #     # await manager.broadcast(response)
-        # except websocket.exceptions.ConnectionClosedError:
-        #     print(f"Connection closed error for {user}")
-        #     manager.disconnect(websocket, user)
-        #     # await manager.broadcast(response)
-        except Exception as e:
-            print(f"Error: {e}")
+        except ConnectionClosed as e:
+            print(f"ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
+        except ConnectionClosedOK as e:
+            print(f"ConnectionClosedOK: {e}")
+            pass
+        except ConnectionClosedError as e:
+            print(f"Connection Closed Error: {e}")
+            manager.disconnect(websocket, user)
+        except Exception as e:
+            print(f"Error for {websocket}, {user}: {e}")
 
 
 async def broadcast_loop():
