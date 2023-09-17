@@ -80,11 +80,20 @@ async def chat(
         except ConnectionClosed as e:
             print(f"ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
+        except websockets.exceptions.ConnectionClosed as e:
+            print(f"websockets ConnectionClosed: {e}")
+            manager.disconnect(websocket, user)
         except ConnectionClosedOK as e:
             print(f"ConnectionClosedOK: {e}")
             pass
+        except websockets.exceptions.ConnectionClosedOK as e:
+            print(f"websockets ConnectionClosedOK: {e}")
+            pass
         except ConnectionClosedError as e:
             print(f"Connection Closed Error: {e}")
+            manager.disconnect(websocket, user)
+        except websockets.exceptions.ConnectionClosedError as e:
+            print(f"websockets Connection Closed Error: {e}")
             manager.disconnect(websocket, user)
         except Exception as e:
             print(f"Error for {websocket}, {user}: {e}")
