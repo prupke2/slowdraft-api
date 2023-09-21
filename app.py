@@ -16,6 +16,7 @@ from models.players import *
 from models.forum import *
 from models.status import *
 from models.draft import *
+from models.watchlist import *
 from models.team import *
 from models.rules import *
 from models.emails import *
@@ -77,12 +78,15 @@ async def chat(
         except WebSocketDisconnect as e:
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
         except ConnectionClosed as e:
             print(f"ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
         except websockets.exceptions.ConnectionClosed as e:
             print(f"websockets ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
         except ConnectionClosedOK as e:
             print(f"ConnectionClosedOK: {e}")
             pass
@@ -92,11 +96,13 @@ async def chat(
         except ConnectionClosedError as e:
             print(f"Connection Closed Error: {e}")
             manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
         except websockets.exceptions.ConnectionClosedError as e:
             print(f"websockets Connection Closed Error: {e}")
-            manager.disconnect(websocket, user)
+            manager.broadcast_user_disconnect(user)
+            await manager.disconnect(websocket, user)
         except Exception as e:
-            print(f"Error for {websocket}, {user}: {e}")
+            print(f"Unknown error for {websocket}, {user}: {e}")
 
 
 async def broadcast_loop():
@@ -203,6 +209,22 @@ async def create_rule(post: RulePostForm, authorization: str = Header(None)):
 async def edit_rule(post: RulePostForm, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return update_rule(post, user)
+
+
+# ------------------------ Watchlist routes ------------------------
+
+@app.post('/add_to_watchlist')
+# @check_if_admin
+async def add_to_watchlist(post: WatchlistForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return add_player_to_watchlist(user['yahoo_league_id'], user['team_key'], post['player_id'])
+
+
+@app.post('/remove_from_watchlist')
+# @check_if_admin
+async def remove_from_watchlist(post: WatchlistForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return remove_player_from_watchlist(user['yahoo_league_id'], user['team_key'], post['player_id'])
 
 
 # -------------------------- Draft routes --------------------------
