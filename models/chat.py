@@ -21,5 +21,9 @@ class SocketManager:
 
     async def broadcast(self, data):
         for connection in self.active_connections:
-            print(f"connection: {connection}")
-            await connection[0].send_json(data)
+            try:
+                print(f"connection: {connection}")
+                await connection[0].send_json(data)
+            except Exception as e:
+                print(f"Error broadcasting to connection[0]: {e}")
+                self.active_connections.remove(connection[0])
