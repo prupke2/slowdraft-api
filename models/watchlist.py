@@ -2,7 +2,10 @@ from app import *
 from config import *
 from db import *
 
-def getWatchlist():
+class WatchlistForm(BaseModel):
+		player_id: int
+
+def get_watchlist():
 	database = db.DB()
 	sql = f"SELECT DISTINCT w.player_id, y.* FROM watchlist w INNER JOIN {YAHOO_PLAYER_DB} y ON y.player_id = w.player_id \
 			WHERE yahoo_league_id = %s AND user_id = %s"
@@ -18,7 +21,7 @@ def getWatchlist():
 			
 	return skaters, goalies
 
-def getWatchlistIds():
+def get_watchlist_ids():
 	database = db.DB()
 	sql = f"SELECT w.player_id FROM watchlist w INNER JOIN {YAHOO_PLAYER_DB} y ON y.player_id = w.player_id WHERE yahoo_league_id = %s AND user_id = %s"
 	database.cur.execute(sql, (session['yahoo_league_id'], session['user_id']))
@@ -30,7 +33,7 @@ def getWatchlistIds():
 		
 	return watchlist
 
-def addToWatchlist(id):
+def add_player_to_watchlist(yahoo_league_id, team_key, player_id):
 	database = db.DB()
 	sql = "INSERT INTO watchlist(yahoo_league_id, user_id, player_id) VALUES(%s, %s, %s)"
 	print(sql)
@@ -38,7 +41,7 @@ def addToWatchlist(id):
 	database.connection.commit()
 	# return True
 
-def removeFromWatchlist(id):
+def remove_player_from_watchlist(yahoo_league_id, team_key, player_id):
 	database = db.DB()
 	sql = "DELETE FROM watchlist WHERE yahoo_league_id = %s AND user_id = %s AND player_id = %s"
 	print(sql)

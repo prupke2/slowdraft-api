@@ -260,22 +260,21 @@ def change_pick(team_key, overall_pick, yahoo_league_id, draft_id):
 def toggle_pick_enabled(overall_pick, draft_id):
 	database = db.DB()
 	now = datetime.datetime.utcnow()
-	disabled = True
-	database.cur.execute("SELECT disabled FROM draft_picks WHERE overall_pick = %s AND draft_id=%s",
+	database.dict_cur.execute("SELECT disabled FROM draft_picks WHERE overall_pick = %s AND draft_id=%s",
 				(overall_pick, draft_id))	
-	pick = database.cur.fetchone()
-	if pick[0] == True:
-		disabled = False
+	pick = database.dict_cur.fetchone()
+	new_disabled_status = not pick["disabled"]
 	database.cur.execute("UPDATE draft_picks SET disabled=%s WHERE overall_pick = %s AND draft_id=%s",
-				(disabled, overall_pick, draft_id))
+				(new_disabled_status, overall_pick, draft_id))
 	database.connection.commit()
 
 	# in case the current pick has just been disabled
 	check_current_pick_in_draft(draft_id)
 	util.update('latest_draft_update', draft_id)
 
-	new_status = 'disabled' if disabled == True else 'enabled'
-	return {'success': True, 'status': new_status}
+	status = 'disabled' if new_disabled_status == True else 'enabled'
+
+	return {'success': True, 'status': status}
 
 def make_pick(draft_id, player_id, team_key):
 	if check_if_taken(draft_id, player_id) == True:
