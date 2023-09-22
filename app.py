@@ -70,7 +70,7 @@ async def chat(
         print(f"response: {response}")
         await manager.broadcast(response)
         try:
-            while True:
+            while True and user in user_list:
                 data = await websocket.receive_json()
                 # if data is not None:
                 print(f"ws data: {data}")
@@ -79,10 +79,10 @@ async def chat(
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
             await manager.broadcast_user_disconnect(user)
-        except ConnectionClosed as e:
-            print(f"ConnectionClosed: {e}")
-            manager.disconnect(websocket, user)
-            await manager.broadcast_user_disconnect(user)
+        # except ConnectionClosed as e:
+        #     print(f"ConnectionClosed: {e}")
+        #     manager.disconnect(websocket, user)
+        #     await manager.broadcast_user_disconnect(user)
         except websockets.exceptions.ConnectionClosed as e:
             print(f"websockets ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
@@ -93,29 +93,16 @@ async def chat(
         except websockets.exceptions.ConnectionClosedOK as e:
             print(f"websockets ConnectionClosedOK: {e}")
             pass
-        except ConnectionClosedError as e:
-            print(f"Connection Closed Error: {e}")
-            manager.disconnect(websocket, user)
-            await manager.broadcast_user_disconnect(user)
+        # except ConnectionClosedError as e:
+        #     print(f"Connection Closed Error: {e}")
+        #     manager.disconnect(websocket, user)
+        #     await manager.broadcast_user_disconnect(user)
         except websockets.exceptions.ConnectionClosedError as e:
             print(f"websockets Connection Closed Error: {e}")
             manager.broadcast_user_disconnect(user)
             await manager.disconnect(websocket, user)
         except Exception as e:
             print(f"Unknown error for {websocket}, {user}: {e}")
-
-
-async def broadcast_loop():
-    while True:
-        user_list = await manager.get_connected_users()
-        response = {
-            "user": user,
-            "status": "connected",
-            "users": user_list
-        }
-        await manager.broadcast(response)
-        time.sleep(1000)
-        broadcast_loop()
 
 @app.get("/login/{code}")
 def login(code: str):

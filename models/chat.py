@@ -36,6 +36,6 @@ class SocketManager:
                 print(f"connection: {connection}")
                 await connection[0].send_json(data)
             except Exception as e:
-                print(f"Error broadcasting to connection[0]: {e}")
+                print(f"Error broadcasting to {connection[0]}: {e}")
                 if connection[0] in self.active_connections:
                     self.active_connections.remove(connection[0])
