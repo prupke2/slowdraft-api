@@ -79,30 +79,32 @@ async def chat(
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
             await manager.broadcast_user_disconnect(user)
-        except ConnectionClosed as e:
-            print(f"ConnectionClosed: {e}")
-            manager.disconnect(websocket, user)
-            await manager.broadcast_user_disconnect(user)
+        # except ConnectionClosed as e:
+        #     print(f"ConnectionClosed: {e}")
+        #     manager.disconnect(websocket, user)
+        #     await manager.broadcast_user_disconnect(user)
         # except websockets.exceptions.ConnectionClosed as e:
         #     print(f"websockets ConnectionClosed: {e}")
         #     manager.disconnect(websocket, user)
         #     await manager.broadcast_user_disconnect(user)
-        except ConnectionClosedOK as e:
-            print(f"ConnectionClosedOK: {e}")
-            pass
+        # except ConnectionClosedOK as e:
+        #     print(f"ConnectionClosedOK: {e}")
+        #     pass
         # except websockets.exceptions.ConnectionClosedOK as e:
         #     print(f"websockets ConnectionClosedOK: {e}")
         #     pass
-        except ConnectionClosedError as e:
-            print(f"Connection Closed Error: {e}")
-            manager.disconnect(websocket, user)
-            await manager.broadcast_user_disconnect(user)
+        # except ConnectionClosedError as e:
+        #     print(f"Connection Closed Error: {e}")
+        #     manager.disconnect(websocket, user)
+        #     await manager.broadcast_user_disconnect(user)
         # except websockets.exceptions.ConnectionClosedError as e:
         #     print(f"websockets Connection Closed Error: {e}")
         #     manager.broadcast_user_disconnect(user)
         #     await manager.disconnect(websocket, user)
         except Exception as e:
             print(f"Unknown error for {websocket}, {user}: {e}")
+            manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
 
 @app.get("/login/{code}")
 def login(code: str):
@@ -205,6 +207,11 @@ async def get_watchlist(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return get_watchlist_ids(user['yahoo_league_id'], user['team_key'])
 
+@app.get('/get_watchlist_data')
+# @check_if_admin
+async def get_watchlist_data(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_watchlist_players(user['draft_id'], user['team_key'])
 
 @app.post('/add_to_watchlist')
 # @check_if_admin
