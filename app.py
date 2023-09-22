@@ -79,28 +79,28 @@ async def chat(
             print(f"WebSocketDisconnect: {e}")
             manager.disconnect(websocket, user)
             await manager.broadcast_user_disconnect(user)
-        # except ConnectionClosed as e:
-        #     print(f"ConnectionClosed: {e}")
-        #     manager.disconnect(websocket, user)
-        #     await manager.broadcast_user_disconnect(user)
-        except websockets.exceptions.ConnectionClosed as e:
-            print(f"websockets ConnectionClosed: {e}")
+        except ConnectionClosed as e:
+            print(f"ConnectionClosed: {e}")
             manager.disconnect(websocket, user)
             await manager.broadcast_user_disconnect(user)
+        # except websockets.exceptions.ConnectionClosed as e:
+        #     print(f"websockets ConnectionClosed: {e}")
+        #     manager.disconnect(websocket, user)
+        #     await manager.broadcast_user_disconnect(user)
         except ConnectionClosedOK as e:
             print(f"ConnectionClosedOK: {e}")
             pass
-        except websockets.exceptions.ConnectionClosedOK as e:
-            print(f"websockets ConnectionClosedOK: {e}")
-            pass
-        # except ConnectionClosedError as e:
-        #     print(f"Connection Closed Error: {e}")
-        #     manager.disconnect(websocket, user)
-        #     await manager.broadcast_user_disconnect(user)
-        except websockets.exceptions.ConnectionClosedError as e:
-            print(f"websockets Connection Closed Error: {e}")
-            manager.broadcast_user_disconnect(user)
-            await manager.disconnect(websocket, user)
+        # except websockets.exceptions.ConnectionClosedOK as e:
+        #     print(f"websockets ConnectionClosedOK: {e}")
+        #     pass
+        except ConnectionClosedError as e:
+            print(f"Connection Closed Error: {e}")
+            manager.disconnect(websocket, user)
+            await manager.broadcast_user_disconnect(user)
+        # except websockets.exceptions.ConnectionClosedError as e:
+        #     print(f"websockets Connection Closed Error: {e}")
+        #     manager.broadcast_user_disconnect(user)
+        #     await manager.disconnect(websocket, user)
         except Exception as e:
             print(f"Unknown error for {websocket}, {user}: {e}")
 
@@ -128,12 +128,11 @@ async def check_for_updates_with_user_and_league(authorization: str = Header(Non
       print(f"Error in check_for_updates: {e}")
       return util.return_error('unknown')
 
-
 @app.get('/get_db_players')
 # @exception_handler
 async def get_players_from_db(position: str = 'skaters', authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return get_db_players(user['draft_id'], position)
+    return get_db_players(user['draft_id'], position, user['team_key'])
 
 
 @app.get('/get_db_players_new')
@@ -200,18 +199,25 @@ async def edit_rule(post: RulePostForm, authorization: str = Header(None)):
 
 # ------------------------ Watchlist routes ------------------------
 
+@app.get('/get_watchlist')
+# @check_if_admin
+async def get_watchlist(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_watchlist_ids(user['yahoo_league_id'], user['team_key'])
+
+
 @app.post('/add_to_watchlist')
 # @check_if_admin
 async def add_to_watchlist(post: WatchlistForm, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return add_player_to_watchlist(user['yahoo_league_id'], user['team_key'], post['player_id'])
+    return add_player_to_watchlist(user['yahoo_league_id'], user['team_key'], post.player_id)
 
 
 @app.post('/remove_from_watchlist')
 # @check_if_admin
 async def remove_from_watchlist(post: WatchlistForm, authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return remove_player_from_watchlist(user['yahoo_league_id'], user['team_key'], post['player_id'])
+    return remove_player_from_watchlist(user['yahoo_league_id'], user['team_key'], post.player_id)
 
 
 # -------------------------- Draft routes --------------------------
