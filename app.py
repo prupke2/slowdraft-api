@@ -132,9 +132,9 @@ async def check_for_updates_with_user_and_league(authorization: str = Header(Non
 
 @app.get('/get_db_players')
 # @exception_handler
-async def get_players_from_db(position: str = 'skaters', authorization: str = Header(None)):
+async def get_players_from_db(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return get_db_players(user['draft_id'], position, user['team_key'])
+    return get_db_players(user['draft_id'], user['team_key'])
 
 
 @app.get('/get_db_players_new')
@@ -206,12 +206,6 @@ async def edit_rule(post: RulePostForm, authorization: str = Header(None)):
 async def get_watchlist(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
     return get_watchlist_ids(user['yahoo_league_id'], user['team_key'])
-
-@app.get('/get_watchlist_data')
-# @check_if_admin
-async def get_watchlist_data(authorization: str = Header(None)):
-    user = get_user_from_auth_token(authorization)
-    return get_watchlist_players(user['draft_id'], user['team_key'])
 
 @app.post('/add_to_watchlist')
 # @check_if_admin

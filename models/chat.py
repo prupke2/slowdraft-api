@@ -16,10 +16,12 @@ class SocketManager:
 
     def disconnect(self, websocket: WebSocket, user: str):
         print(f"{user} disconnected.")
-        if (websocket, user) in self.active_connections:
+        try:
             self.active_connections.remove((websocket, user))
-        print(f"Connection successfully closed for ({websocket}, {user}).")
-
+            print(f"Connection successfully closed for ({websocket}, {user}).")
+        except Exception as e:
+            print(f"Error closing connection for ({websocket}, {user}): {e}")
+            pass
     async def broadcast_user_disconnect(self, user: str):
         user_list = await self.get_connected_users()
         response = {
@@ -37,5 +39,5 @@ class SocketManager:
                 await connection[0].send_json(data)
             except Exception as e:
                 print(f"Error broadcasting to {connection[0]}: {e}")
-                if connection[0] in self.active_connections:
-                    self.active_connections.remove(connection[0])
+                if connection in self.active_connections:
+                    self.active_connections.remove(connection)
