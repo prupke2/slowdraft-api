@@ -70,7 +70,7 @@ async def chat(
         print(f"response: {response}")
         await manager.broadcast(response)
         try:
-            while True and user in user_list:
+            while True:
                 data = await websocket.receive_json()
                 # if data is not None:
                 print(f"ws data: {data}")
