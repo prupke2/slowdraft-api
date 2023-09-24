@@ -134,7 +134,7 @@ async def check_for_updates_with_user_and_league(authorization: str = Header(Non
 # @exception_handler
 async def get_players_from_db(authorization: str = Header(None)):
     user = get_user_from_auth_token(authorization)
-    return get_db_players(user['draft_id'], user['team_key'])
+    return get_db_players(user['draft_id'])
 
 
 @app.get('/get_db_players_new')

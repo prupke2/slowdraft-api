@@ -36,28 +36,41 @@ def insert_db_player(name, player_id, team, positions_array, draft_id):
 	util.update(table, draft_id)
 	return util.return_true()
 
-def get_db_players(draft_id, position):
+def get_db_players(draft_id):
+	# Gets the player list from the current year and the stats from the previous year
 	database = db.DB()
-	query = """
-		SELECT DISTINCT 
-			(SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS "user",
-			(SELECT DISTINCT u.color FROM users u WHERE u.team_key = ut.team_key) AS "owner_color",
-		"""
-	if position == "G":
-		query += """
-			y.name, y.position, y.prospect, y.player_id, y.player_key, y.team, y.headshot, y.careerGP, "18", 
-		""" + f""" "19", "22", CAST("23" AS CHAR) AS "23", "24", "25", "26" FROM {YAHOO_PLAYER_DB} y """
-	else:
-		query += f"y.* FROM {YAHOO_PLAYER_DB} y "
-	query += f"LEFT JOIN user_team ut ON ut.player_id = y.player_id AND ut.draft_id = {draft_id} WHERE "
 
-	if position == "G":
-		query += "position = 'G';"
-	else:
-		query += "position != 'G';"
+	query = f"""
+			SELECT DISTINCT
+						(SELECT DISTINCT u.username FROM users u WHERE u.team_key = ut.team_key) AS "user", 
+						ut.team_key,
+						y2.name,
+						y2.team,
+						y2.player_id,
+						y2.player_key,
+						y2.position AS "position",
+						y2.prospect AS "prospect",
+						y2.careerGP AS "careerGP",
+						y2.headshot AS "headshot",
+						y2.ir,
+						CASE 
+							WHEN w.player_id = y2.player_id THEN true
+							ELSE false
+						END AS "watched",
+						{GOALIE_STAT_COLUMNS},
+ 						{SKATER_STAT_COLUMNS}
+			FROM {YAHOO_PLAYER_DB} y2
+			LEFT JOIN user_team ut 
+				ON ut.player_id = y2.player_id 
+				AND ut.draft_id = {draft_id}
+			LEFT JOIN {YAHOO_PLAYER_DB_PREVIOUS_YEAR} y1
+				ON y2.player_id = y1.player_id
+			LEFT JOIN watchlist w
+				ON y2.player_id = w.player_id
+		"""
 	
-	result = database.cur.execute(query)	
-	players = database.cur.fetchall()
+	result = database.dict_cur.execute(query)	
+	players = database.dict_cur.fetchall()
 	player_array = []
 	for player in players:
 		player_array.append(player)
