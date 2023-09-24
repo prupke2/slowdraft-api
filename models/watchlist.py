@@ -20,8 +20,8 @@ def get_watchlist_ids(yahoo_league_id, team_key):
 
 	watchlist = []
 	for player in players:
-		watchlist.append(player['player_id'])
-	return watchlist
+		watchlist.append(player[0])
+	return {'success': True, 'players': watchlist}
 
 def add_player_to_watchlist(yahoo_league_id, team_key, player_id):
 	database = db.DB()
