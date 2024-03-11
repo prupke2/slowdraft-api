@@ -1,12 +1,10 @@
 from typing import Optional
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from typing import Union, List
 from oauth import *
 from oauth.web_token import *
 from random import randint
-import time
 import config
 import os
 import sys
@@ -122,7 +120,7 @@ async def check_for_updates_with_user_and_league(authorization: str = Header(Non
     try:
       user = get_user_from_auth_token(authorization)
       print(f"Getting updates for {user['team_name']} ({user['team_key']})")
-      return get_updates_with_league(user['yahoo_league_id'], user['team_key'])
+      return get_updates_with_league(user['yahoo_league_id'], user['team_key'], user['draft_id'])
     except Exception as e:
       if 'error' in user:
         print(f"Error in check_for_updates: {user['error']}, status: {user['status']}")
