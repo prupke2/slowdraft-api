@@ -69,7 +69,7 @@ def get_db_players(draft_id):
 				ON y2.player_id = w.player_id
 		"""
 	
-	result = database.dict_cur.execute(query)	
+	database.dict_cur.execute(query)
 	players = database.dict_cur.fetchall()
 	player_array = []
 	for player in players:
