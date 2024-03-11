@@ -7,26 +7,22 @@ import db
 from collections import OrderedDict
 import json
 
-def get_updates_with_league(yahoo_league_id, team_key):
+def get_updates_with_league(yahoo_league_id, team_key, draft_id):
     if yahoo_league_id == None or team_key == None:
     	return {'success': False, 'updates': None, 'drafting_now': False}
     database = db.DB()
-    database.cur.execute(
-        f"""SELECT latest_draft_update, latest_team_update, latest_forum_update, 
-          latest_player_db_update, latest_rules_update, latest_goalie_db_update
-          FROM updates 
-          WHERE yahoo_league_id = {yahoo_league_id}
+    database.dict_cur.execute(
+        f"""
+					SELECT u.latest_draft_update, u.latest_team_update, u.latest_forum_update, 
+          				u.latest_player_db_update, u.latest_rules_update, u.latest_goalie_db_update, d.current_pick
+          FROM updates u
+					LEFT JOIN draft d
+						ON u.draft_id = d.draft_id
+          WHERE u.yahoo_league_id = {yahoo_league_id}
+					AND u.draft_id = {draft_id}
         """)
-    updates = database.cur.fetchone()
-    updates_json = { 
-      "latest_draft_update": updates[0],
-      "latest_team_update": updates[1],
-      "latest_forum_update": updates[2],
-      "latest_player_db_update": updates[3],
-      "latest_rules_update": updates[4],
-      "latest_goalie_db_update": updates[5]
-    }
-    return {'success': True, 'updates': updates_json, 'drafting_now': check_if_drafting(database, team_key)}
+    updates = database.dict_cur.fetchone()
+    return {'success': True, 'updates': updates, 'drafting_now': check_if_drafting(database, team_key)}
 
 def check_if_drafting(database, team_key):
     sql = "SELECT drafting_now FROM users WHERE team_key = %s"
