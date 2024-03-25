@@ -277,35 +277,38 @@ def toggle_pick_enabled(overall_pick, draft_id):
 	return {'success': True, 'status': status}
 
 def make_pick(draft_id, player_id, team_key):
-	if check_if_taken(draft_id, player_id) == True:
-		return return_error('This player has already been drafted.')
-	pick = get_earliest_pick(draft_id, team_key)
-	if pick is None:
-		return return_error('You have no remaining picks.')
-	commit_pick(draft_id, player_id, team_key, pick['overall_pick'])
-	next_pick = check_next_pick(draft_id, pick['overall_pick'])
-	if next_pick is None:
-		set_drafting_now(team_key, False)
-		return {
-			"success": True, 
-			"player": None, 
-			"next_pick": None, 
-			"drafting_again": False
-		}
-	if team_key == next_pick['team_key']:
-		drafting_again = True
-	else:
-		drafting_again = False
-		set_drafting_now(team_key, False)
-		set_drafting_now(next_pick['team_key'], True)
-		email_success = pd.pd_incident(next_pick['service_id'])
-		if email_success != True:
-			print(f"Error in pd_incident for user {next_pick['team_key']} with service ID {next_pick['service_id']}")
-		# emails.next_pick_email(next_pick['email'])
-	player_data = get_one_player_from_db(player_id)
-	player = []
-	player.extend((player_data['name'], ' ' + player_data['position'], ' ' + player_data['team']))
-	return {'success': True, 'player': player, 'next_pick': next_pick, 'drafting_again': drafting_again}
+	try:
+		if check_if_taken(draft_id, player_id) == True:
+			return return_error('This player has already been drafted.')
+		pick = get_earliest_pick(draft_id, team_key)
+		if pick is None:
+			return return_error('You have no remaining picks.')
+		commit_pick(draft_id, player_id, team_key, pick['overall_pick'])
+		next_pick = check_next_pick(draft_id, pick['overall_pick'])
+		if next_pick is None:
+			set_drafting_now(team_key, False)
+			return {
+				"success": True, 
+				"player": None, 
+				"next_pick": None, 
+				"drafting_again": False
+			}
+		if team_key == next_pick['team_key']:
+			drafting_again = True
+		else:
+			drafting_again = False
+			set_drafting_now(team_key, False)
+			set_drafting_now(next_pick['team_key'], True)
+			email_success = pd.pd_incident(next_pick['service_id'])
+			if email_success != True:
+				print(f"Error in pd_incident for user {next_pick['team_key']} with service ID {next_pick['service_id']}")
+			# emails.next_pick_email(next_pick['email'])
+		player_data = get_one_player_from_db(player_id)
+		player = []
+		player.extend((player_data['name'], ' ' + player_data['position'], ' ' + player_data['team']))
+		return {'success': True, 'player': player, 'next_pick': next_pick, 'drafting_again': drafting_again}
+	except Exception as e:
+		return_error(e)
 
 def check_if_taken(draft_id, player_id):
 	database = db.DB()
