@@ -29,7 +29,7 @@ import psycopg2
 app = FastAPI()
 
 origins = [
-    "https://slowdraft.netlify.app",
+    "https://slowdraft.vercel.app",
     "http://localhost:3000",
     "http://0.0.0.0:3000",
 ]
@@ -313,7 +313,7 @@ async def startup_event():
     if 'client_id' in os.environ:
         config.client_id = os.environ['client_id']
         config.client_secret = os.environ['client_secret']
-        config.redirect_uri = "https://slowdraft.netlify.app"
+        config.redirect_uri = "https://slowdraft.vercel.app"
         # config.pubnub_publish_key = os.environ['pubnub_publish_key']
         # config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
         # config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
