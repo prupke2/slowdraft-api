@@ -106,7 +106,7 @@ async def chat(
 
 @app.get("/login/{code}")
 def login(code: str):
-    print('At login route');
+    print('At login route')
     
     return oauth_login(code)
 
