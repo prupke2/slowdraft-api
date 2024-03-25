@@ -106,6 +106,8 @@ async def chat(
 
 @app.get("/login/{code}")
 def login(code: str):
+    print('At login route');
+    
     return oauth_login(code)
 
 
@@ -314,7 +316,7 @@ async def startup_event():
         config.redirect_uri = "https://slowdraft.netlify.app"
         # config.pubnub_publish_key = os.environ['pubnub_publish_key']
         # config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
-        config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
+        # config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
 
         # get Yahoo league credentials
         config.league_key = os.environ['game_key'] + ".l." + os.environ['yahoo_league_id']
@@ -330,16 +332,16 @@ async def startup_event():
         config.url = os.environ['url']
 
         # get DB config
-        config.host = os.environ['host']
-        config.user = os.environ['user']
-        config.password = os.environ['password']
-        config.db = os.environ['db']
+        config.host = os.environ['POSTGRES_HOST']
+        config.user = os.environ['POSTGRES_USER']
+        config.password = os.environ['POSTGRES_PASSWORD']
+        config.db = os.environ['POSTGRES_DB']
 
         database = psycopg2.connect(
-          host=os.environ['host'],
-          database=os.environ['db'],
-          user=os.environ['user'],
-          password=os.environ['password']
+          host=os.environ['POSTGRES_HOST'],
+          database=os.environ['POSTGRES_DB'],
+          user=os.environ['POSTGRES_USER'],
+          password=os.environ['POSTGRES_PASSWORD']
         )
 
     else:
