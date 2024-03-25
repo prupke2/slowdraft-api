@@ -1,5 +1,6 @@
 from app import *
 from config import *
+from pydantic import BaseModel
 import yahoo_api
 import oauth.yahoo_oauth
 import oauth.web_token
