@@ -69,7 +69,7 @@ def oauth_login(code):
                     'status': 400
                 }
     print(f'client_id: {config.client_id}')
-    if client_id is None:
+    if config.client_id is None:
         util.set_config()
     response = get_access_token(
         config.client_id, config.client_secret, config.redirect_uri, code)
