@@ -15,6 +15,8 @@ def get_access_token(client_id, client_secret, redirect_uri, code):
     
     base64_token = base64.b64encode((client_id + ':' + client_secret).encode())
     token = base64_token.decode("utf-8")
+    print(f'token: {token}')
+    
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Basic ' + str(token),
