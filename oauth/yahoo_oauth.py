@@ -69,14 +69,16 @@ def oauth_login(code):
                     'error': 'No code provided',
                     'status': 400
                 }
-    print(f'client_id: {config.client_id}')
     if config.client_id is None:
-        util.set_config()
-    print(f'new client_id: {config.client_id}')
-    print(f'client_id in os.environ: {os.environ["client_id"]}')
+        client_id = os.environ["client_id"]
+        client_secret = os.environ["client_secret"]
+        redirect_uri = os.environ["redirect_uri"]
+    else:
+        client_id = config.client_id
+        client_secret = config.client_secret
+        redirect_uri = config.redirect_uri
 
-    response = get_access_token(
-        config.client_id, config.client_secret, config.redirect_uri, code)
+    response = get_access_token(client_id, client_secret, redirect_uri, code)
     if response.status_code >= 200 and response.status_code <= 203:
         token_response = response.json()
         try:
