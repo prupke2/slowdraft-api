@@ -311,7 +311,11 @@ def get_doc_url(authorization: str = Header(None)):
 
 @app.on_event("startup")
 async def startup_event():
+    print('in startup_event')
+    
     if 'client_id' in os.environ:
+        print('client_id in os.environ')
+        
         config.client_id = os.environ['client_id']
         config.client_secret = os.environ['client_secret']
         config.redirect_uri = "https://slowdraft.vercel.app"
@@ -346,6 +350,7 @@ async def startup_event():
         )
 
     else:
+        print('client_id not in os.environ')
         import credentials
         app.secret_key = credentials.SECRET_KEY
         # get Yahoo Oauth credentials
