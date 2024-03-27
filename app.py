@@ -30,6 +30,7 @@ app = FastAPI()
 
 origins = [
     "https://slowdraft.vercel.app",
+    "https://slowdraft-api.vercel.app",
     "http://localhost:3000",
     "http://0.0.0.0:3000",
 ]
