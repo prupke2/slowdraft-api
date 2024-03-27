@@ -12,7 +12,7 @@ import os
 def get_access_token(client_id, client_secret, redirect_uri, code):
     # This function takes the 7 digit code from the user and attempts to get a yahoo access token
     # If successful, the access and refresh tokens are returned
-    print(f'client_id: {client_id}')
+    print(f'client_id in get_access_token: {client_id}')
     print(f'client_secret: {client_secret}')
     
     base64_token = base64.b64encode((client_id + ':' + client_secret).encode())
@@ -83,6 +83,8 @@ def oauth_login(code):
         client_id = config.client_id
         client_secret = config.client_secret
         redirect_uri = config.redirect_uri
+
+    print(f'client_id in oauth_login: {client_id}')
 
     response = get_access_token(client_id, client_secret, redirect_uri, code)
     if response.status_code >= 200 and response.status_code <= 203:
