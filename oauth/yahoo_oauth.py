@@ -71,6 +71,9 @@ def oauth_login(code):
     print(f'client_id: {config.client_id}')
     if config.client_id is None:
         util.set_config()
+    print(f'new client_id: {config.client_id}')
+    print(f'client_id in os.environ: {os.environ["client_id"]}')
+
     response = get_access_token(
         config.client_id, config.client_secret, config.redirect_uri, code)
     if response.status_code >= 200 and response.status_code <= 203:
