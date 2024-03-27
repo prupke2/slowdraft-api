@@ -12,8 +12,12 @@ import os
 def get_access_token(client_id, client_secret, redirect_uri, code):
     # This function takes the 7 digit code from the user and attempts to get a yahoo access token
     # If successful, the access and refresh tokens are returned
+    print(f'client_id: {client_id}')
+    print(f'client_secret: {client_secret}')
     
     base64_token = base64.b64encode((client_id + ':' + client_secret).encode())
+    print(f'base64_token: {base64_token}')
+    
     token = base64_token.decode("utf-8")
     print(f'token: {token}')
     
