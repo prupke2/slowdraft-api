@@ -8,13 +8,14 @@ from models import status
 import db
 import util
 import config
+import os
 
 class SelectLeague(BaseModel):
     league_key: str
 
 
 def get_leagues(access_token, refresh_token):
-    GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={config.game_key}/leagues'
+    GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={os.environ["game_key"]}/leagues'
     try:
         leagues_query = yahoo_api.yahoo_request(GET_LEAGUES_URL, access_token, refresh_token, True)
         if leagues_query == False:
@@ -70,7 +71,7 @@ def register_leagues(access_token, refresh_token):
 
 def get_registered_league(league_list):
     for league in league_list:
-        if league['league_key'] == config.league_key:
+        if league['league_key'] == os.environ['league_key']:
             return league['league_key']
     return None
 

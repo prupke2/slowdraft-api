@@ -6,7 +6,7 @@ import xmltodict
 import json
 import oauth.yahoo_oauth
 import util
-
+import os
 
 def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
     # pass in a Yahoo fantasy sports URL here
@@ -35,7 +35,7 @@ def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
             refresh_attempts += 1
             print("Attempt # " + str(refresh_attempts))
             attempt = oauth.yahoo_oauth.refresh_access_token(
-                refresh_token, config.client_id, config.client_secret, config.redirect_uri)
+                refresh_token, os.environ['client_id'], os.environ['client_secret'], os.environ['redirect_uri'])
             if attempt['success']:
                 break
         # give up after 3 tries
@@ -56,7 +56,7 @@ def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
 
 def organize_player_info(player_keys):
     LEAGUE_URL = YAHOO_BASE_URL + "league/" + \
-        config.league_key + "/players;player_keys=" + player_keys
+        os.environ['league_key'] + "/players;player_keys=" + player_keys
     players = []
     player_query = yahoo_request(LEAGUE_URL)
     if not player_query:
@@ -86,7 +86,7 @@ def organize_player_info(player_keys):
 
 
 def get_yteam(team_id):
-    TEAM_URL = f"https://fantasysports.yahooapis.com/fantasy/v2/team/{config.league_key}.t.10"
+    TEAM_URL = f"https://fantasysports.yahooapis.com/fantasy/v2/team/{os.environ['league_key']}.t.10"
     team_query = yahoo_request(TEAM_URL)
     print(f"team_query: {team_query}")
     return {team_query: team_query}

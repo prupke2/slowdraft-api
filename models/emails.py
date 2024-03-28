@@ -2,6 +2,7 @@ from app import *
 import config
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import os
 
 def next_pick_email(to_email):
 	try:
@@ -15,7 +16,7 @@ def next_pick_email(to_email):
 							"<br><p style='font-size: 14px;'>It's your turn to pick in the draft!</p>" \
 							"<p>" + config.site + "</p	>" \
 							"<p style='font-size: 8px; text-align: right;'>© SlowDraft</p></div>")
-		sg = SendGridAPIClient(config.SENDGRID_KEY)
+		sg = SendGridAPIClient(os.environ['SENDGRID_KEY'])
 		response = sg.send(message)
 		print(f"status code: {response.status_code} response: {response.body}")
 		return True

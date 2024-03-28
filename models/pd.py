@@ -1,6 +1,7 @@
 from app import *
 import http.client
 import config
+import os
 
 def pd_incident(service_id):
 	try:
@@ -11,8 +12,8 @@ def pd_incident(service_id):
 		headers = {
 			"Content-Type": "application/json",
 			"Accept": "application/vnd.pagerduty+json;version=2",
-			"From": config.from_email,
-			"Authorization": f"Token token={config.pd_api}"
+			"From": os.environ['from_email'],
+			"Authorization": f"Token token={os.environ['pd_api']}"
 		}
 
 		test = conn.request("POST", "/incidents", new_payload, headers)

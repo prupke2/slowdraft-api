@@ -3,6 +3,7 @@ from config import *
 import yahoo_api
 import db
 import datetime
+import os
 
 # Form for searching players
 # class PlayerSearchForm(Form):
@@ -127,8 +128,8 @@ def get_db_players_new(draft_id, position):
 	return {'success': True, 'players': players}
 
 def get_players(sortby, sortdir, position, player_search, offset):
-	LEAGUE_URL = YAHOO_BASE_URL + "league/" + config.league_key
-	# all_free_agents = yahoo_request(YAHOO_BASE_URL + "league/" + config.league_key + "/players;status=FA;count=22")
+	LEAGUE_URL = YAHOO_BASE_URL + "league/" + os.environ['league_key']
+	# all_free_agents = yahoo_request(YAHOO_BASE_URL + "league/" + os.environ['league_key'] + "/players;status=FA;count=22")
 	if player_search != '':
 		player_query = yahoo_api.yahoo_request(LEAGUE_URL + '/players;search=' + str(player_search))
 	else:

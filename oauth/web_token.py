@@ -5,6 +5,7 @@ from fastapi import FastAPI, Header
 from functools import wraps
 import models.status
 import util
+import os
 
 
 def get_expiry():
@@ -32,7 +33,7 @@ def generate_web_token(league_list, my_team, access_token, refresh_token):
         "role": my_team['role'],
         "color": color
     }
-    return jwt.encode(payload, config.client_secret, algorithm="HS256")
+    return jwt.encode(payload, os.environ['client_secret'], algorithm="HS256")
 
 
 def generate_temp_web_token(league_list, access_token, refresh_token):
@@ -50,7 +51,7 @@ def generate_temp_web_token(league_list, access_token, refresh_token):
         "role": 'admin',
         "temp": True
     }
-    return jwt.encode(payload, config.client_secret, algorithm="HS256")
+    return jwt.encode(payload, os.environ['client_secret'], algorithm="HS256")
 
 
 def replace_temp_token_with_web_token(user, draft_id, color_codes):
@@ -67,7 +68,7 @@ def replace_temp_token_with_web_token(user, draft_id, color_codes):
 
 
 def decode_web_token(token):
-    return jwt.decode(token, config.client_secret, issuer="SlowDraft", algorithms="HS256")
+    return jwt.decode(token, os.environ['client_secret'], issuer="SlowDraft", algorithms="HS256")
 
 def get_user_from_auth_token(token):
     try:

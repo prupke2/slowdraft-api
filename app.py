@@ -312,66 +312,32 @@ def get_doc_url(authorization: str = Header(None)):
 @app.on_event("startup")
 async def startup_event():
     print('in startup_event')
-    
     if 'client_id' in os.environ:
         print('client_id in os.environ')
-        
-        config.client_id = os.environ['client_id']
-        config.client_secret = os.environ['client_secret']
-        config.redirect_uri = "https://slowdraft.vercel.app"
-        # config.pubnub_publish_key = os.environ['pubnub_publish_key']
-        # config.pubnub_subscribe_key = os.environ['pubnub_subscribe_key']
-        # config.SENDGRID_KEY = os.environ['SENDGRID_KEY']
-
-        # get Yahoo league credentials
-        config.league_key = os.environ['game_key'] + ".l." + os.environ['yahoo_league_id']
-        config.yahoo_league_id = os.environ['yahoo_league_id']
-        config.draft_id = os.environ['draft_id']
-        config.game_key = os.environ['game_key']
-
-        # get email and pd creds
-        config.from_email = os.environ['from_email']
-        config.pd_api = os.environ['pd_api']
-
-        # get doc config
-        config.url = os.environ['url']
-
-        # get DB config
-        config.host = os.environ['POSTGRES_HOST']
-        config.user = os.environ['POSTGRES_USER']
-        config.password = os.environ['POSTGRES_PASSWORD']
-        config.db = os.environ['POSTGRES_DB']
-
-        database = psycopg2.connect(
-          host=os.environ['POSTGRES_HOST'],
-          database=os.environ['POSTGRES_DB'],
-          user=os.environ['POSTGRES_USER'],
-          password=os.environ['POSTGRES_PASSWORD']
-        )
-
+    
     else:
-        print('client_id not in os.environ')
+        print('client_id not in os.environ, setting from credentials')
         import credentials
         app.secret_key = credentials.SECRET_KEY
         # get Yahoo Oauth credentials
-        config.client_id = credentials.consumer_key
-        config.client_secret = credentials.consumer_secret
-        config.redirect_uri = "oob"
+        os.environ['client_id'] = credentials.consumer_key
+        os.environ['client_secret'] = credentials.consumer_secret
+        os.environ['redirect_uri'] = "oob"
 
         # get Yahoo league credentials
-        config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
-        config.yahoo_league_id = credentials.yahoo_league_id
-        config.draft_id = credentials.draft_id
-        config.game_key = credentials.game_key
+        os.environ['league_key']= credentials.league_key
+        os.environ['yahoo_league_id'] = credentials.yahoo_league_id
+        os.environ['draft_id'] = credentials.draft_id
+        os.environ['game_key'] = credentials.game_key
 
         # get email and pd creds
-        config.from_email=credentials.from_email
-        config.pd_api=credentials.pd_api
+        os.environ['from_email']=credentials.from_email
+        os.environ['pd_api']=credentials.pd_api
 
         # get doc config
-        config.url = credentials.url
+        os.environ['url'] = credentials.url
 
         # get local DB credentials
-        config.host, config.user, config.password, config.db = credentials.get_local_DB()
+        os.environ['host'], os.environ['user'], os.environ['password'], os.environ['db'] = credentials.get_local_DB()
 
-        config.SENDGRID_KEY = credentials.SENDGRID_KEY
+        # config.SENDGRID_KEY = credentials.SENDGRID_KEY

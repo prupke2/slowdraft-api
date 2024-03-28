@@ -6,6 +6,7 @@ import yahoo_api
 import db
 from collections import OrderedDict
 import json
+import os
 
 def get_updates_with_league(yahoo_league_id, team_key, draft_id):
     if yahoo_league_id == None or team_key == None:
@@ -37,7 +38,7 @@ def check_league(f):
         if 'draft_id' not in session:
             database = db.DB()
             sql = "SELECT * FROM league WHERE yahoo_league_id = %s"
-            league_id = str(config.league_key[-5:])
+            league_id = str(os.environ['league_key'][-5:])
             result = database.cur.execute(sql, league_id)
             league = database.cur.fetchone()
             session['draft_id'] = league['most_recent_draft_id']

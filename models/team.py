@@ -3,7 +3,7 @@ from config import *
 import yahoo_api
 import db
 import config
-
+import os
 
 class AddKeeperPlayerForm(BaseModel):
 		team_key: str
@@ -48,7 +48,7 @@ def get_teams_from_db(draft_id):
 	return {'success': True, 'teams': teams}
 
 def get_yahoo_team(team_id):
-	ROSTER_URL = YAHOO_BASE_URL + "team/" + config.league_key + ".t." + team_id + "/roster"
+	ROSTER_URL = YAHOO_BASE_URL + "team/" + os.environ['league_key'] + ".t." + team_id + "/roster"
 	roster = yahoo_api.yahoo_request(ROSTER_URL)
 	if roster == '':
 		return '','','','';	
@@ -59,7 +59,7 @@ def get_yahoo_team(team_id):
 
 def get_yahoo_team_players(team_id):
  
-	ROSTER_URL = f"{YAHOO_BASE_URL}/team/{config.league_key}.t.{str(team_id)}/roster"
+	ROSTER_URL = f"{YAHOO_BASE_URL}/team/{os.environ['league_key']}.t.{str(team_id)}/roster"
 	roster = yahoo_api.yahoo_request(ROSTER_URL)
 	if roster == '':
 		return '','','','';	

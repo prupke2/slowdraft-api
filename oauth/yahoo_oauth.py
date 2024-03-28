@@ -9,15 +9,11 @@ import util
 import json
 import os
 
-def get_access_token(client_id, client_secret, redirect_uri, code):
+def get_access_token(code):
     # This function takes the 7 digit code from the user and attempts to get a yahoo access token
     # If successful, the access and refresh tokens are returned
-    print(f'client_id in get_access_token: {client_id}')
-    base64_token = base64.b64encode((os.environ['client_id'] + ':' + os.environ['client_secret']).encode())
-    print(f'base64_token: {base64_token}')
-    
+    base64_token = base64.b64encode((os.environ['client_id'] + ':' + os.environ['client_secret']).encode())    
     token = base64_token.decode("utf-8")
-    print(f'token: {token}')
     
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -26,8 +22,8 @@ def get_access_token(client_id, client_secret, redirect_uri, code):
     data = {
         'grant_type': 'authorization_code',
         'code': str(code),
-        'client_id': client_id,
-        'client_secret': client_secret,
+        'client_id': os.environ['client_id'],
+        'client_secret': os.environ['client_secret'],
         'redirect_uri': str(os.environ['redirect_uri'])
     }
     response = requests.post(config.GET_TOKEN_URL, headers=headers, data=data)
@@ -74,10 +70,7 @@ def oauth_login(code):
                     'status': 400
                 }
 
-    if config.client_id is not None:
-        response = get_access_token(config.client_id, config.client_secret, config.redirect_uri, code)
-    else:
-        response = get_access_token(os.environ['client_id'], os.environ['client_secret'], os.environ['redirect_uri'], code)
+    response = get_access_token(code)
 
     if response.status_code >= 200 and response.status_code <= 203:
         token_response = response.json()
