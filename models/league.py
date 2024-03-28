@@ -28,6 +28,7 @@ def get_leagues(access_token, refresh_token):
         league_list = []
         for i in range(league_count):
             league_list.append(leagues[str(i)]['league'][0])
+        print(f'league_list: {league_list}')    
         return league_list
     except Exception as e:
         print(f"Error in get_leagues function: {e}")
@@ -43,6 +44,8 @@ def register_leagues(access_token, refresh_token):
         return util.return_error('invalid_league', 403)
     team_query = get_teams_in_league(
         league_key, access_token, refresh_token)
+    print(f'team_query: {team_query}')
+    
     teams, my_team_data, is_live_draft, registered = status.set_team_sessions(
         league_key, team_query)
     web_token = oauth.web_token.generate_web_token(
