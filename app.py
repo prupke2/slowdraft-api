@@ -338,6 +338,6 @@ async def startup_event():
         os.environ['url'] = credentials.url
 
         # get local DB credentials
-        os.environ['host'], os.environ['user'], os.environ['password'], os.environ['db'] = credentials.get_local_DB()
+        os.environ['POSTGRES_HOST'], os.environ['POSTGRES_USER'], os.environ['POSTGRES_PASSWORD'], os.environ['POSTGRES_DATABASE'] = credentials.get_local_DB()
 
         # config.SENDGRID_KEY = credentials.SENDGRID_KEY

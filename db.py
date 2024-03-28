@@ -19,10 +19,10 @@ class DB(object):
 
     def __init__(self):
         self.connection = psycopg2.connect(
-            host=os.environ['host'],
-            user=os.environ['user'],
-            password=os.environ['password'],
-            database=os.environ['db']
+            host=os.environ['POSTGRES_HOST'],
+            user=os.environ['POSTGRES_USER'],
+            password=os.environ['POSTGRES_PASSWORD'],
+            database=os.environ['POSTGRES_DATABASE']
         )
         self.cur = self.connection.cursor()
         self.dict_cur = self.connection.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
