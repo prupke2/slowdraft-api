@@ -59,7 +59,6 @@ def set_team_sessions(league_key, team_query):
         team_data['yahoo_team_id'] = int(team['team_id'])
         team_data['team_key'] = team['team_key']
         team_data['user'] = team['managers']['manager']['nickname']
-        team_data['user_logo'] = team['managers']['manager']['image_url']
         team_data['team_name'] = team['name']
         team_data['team_logo'] = team['team_logos']['team_logo']['url']
         # team_data['waiver_priority'] = team['waiver_priority']
