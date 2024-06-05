@@ -48,7 +48,7 @@ def generate_temp_web_token(league_list, access_token, refresh_token):
         "yahoo_team_id": None,
         "team_key": None,
         "team_name": None,
-        "role": 'admin',
+        "role": "admin",
         "temp": True
     }
     return jwt.encode(payload, os.environ['client_secret'], algorithm="HS256")
