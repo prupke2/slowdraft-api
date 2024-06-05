@@ -14,6 +14,16 @@ class SelectLeague(BaseModel):
     league_key: str
 
 
+def get_chat_token(role):
+    if role == "admin":
+        token = os.environ["chat_token_admin"]
+    else:
+        token = os.environ["chat_token_user"]
+    return {
+        'success': True,
+        'token': token
+    }
+
 def get_leagues(access_token, refresh_token):
     GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={os.environ["game_key"]}/leagues'
     try:
