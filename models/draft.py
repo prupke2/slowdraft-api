@@ -38,7 +38,7 @@ def create_new_draft(user, teams, rounds, snake_draft, team_order):
 	sql = """
 		INSERT INTO draft (yahoo_league_id, draft_start_time_utc, is_live, is_snake_draft, is_over, 
 											rounds, per_pick, current_pick, keeper_total, keeper_goalies)
-		VALUES (%s, '2023-09-16 13:00:00', 0, %s, 0, 
+		VALUES (%s, '2024-09-16 13:00:00', 0, %s, 0, 
 						%s, 1, 1, 10, 2)
 		RETURNING draft_id;
 	"""
