@@ -6,10 +6,10 @@ import psycopg2.extras
 
 # Uncomment out the lines below when scraping
 # import credentials
-# config.host, config.user, config.password, config.db = credentials.get_local_DB()
-# config.league_key = credentials.game_key + ".l." + credentials.yahoo_league_id
+# os.environ['POSTGRES_HOST'], os.environ['POSTGRES_USER'], os.environ['POSTGRES_PASSWORD'], os.environ['POSTGRES_DATABASE'] = credentials.get_local_DB()
+# os.environ['league_key'] = credentials.game_key + ".l." + credentials.yahoo_league_id
 # os.environ['yahoo_league_id'] = credentials.yahoo_league_id
-# config.league_id = credentials.league_id
+# config.league_key = credentials.league_key
 # os.environ['draft_id'] = credentials.draft_id
 # os.environ['client_id'] = credentials.consumer_key
 # os.environ['client_secret'] = credentials.consumer_secret
