@@ -15,8 +15,8 @@ class SelectLeague(BaseModel):
 
 
 def get_leagues(access_token, refresh_token):
-    GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={os.environ["game_key"]}/leagues'
     try:
+        GET_LEAGUES_URL = YAHOO_BASE_URL + f'users;use_login=1/games;game_keys={os.environ["game_key"]}/leagues'
         leagues_query = yahoo_api.yahoo_request(GET_LEAGUES_URL, access_token, refresh_token, True)
         if leagues_query == False:
             return util.return_error("token_error")
