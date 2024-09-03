@@ -427,7 +427,7 @@ def check_current_pick_in_draft(draft_id):
 			WHERE draft_id = %s
 			AND pick_expires is NOT NULL
 			AND player_id IS NULL
-			AND disabled IS FALSE
+			AND disabled IS NOT TRUE
 			ORDER BY overall_pick DESC
 		"""
 	database.dict_cur.execute(sql, [draft_id])
