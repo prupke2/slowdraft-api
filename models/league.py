@@ -15,13 +15,13 @@ class SelectLeague(BaseModel):
 
 
 def get_chat_token(role):
-    if role == "admin":
-        token = os.environ["chat_token_admin"]
-    else:
-        token = os.environ["chat_token_user"]
+    # if role == "admin":
+    #     token = os.environ["chat_token_admin"]
+    # else:
+    #     token = os.environ["chat_token_user"]
     return {
         'success': True,
-        'token': token
+        'token': os.environ["chat_token_admin"]
     }
 
 def get_leagues(access_token, refresh_token):
