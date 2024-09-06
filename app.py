@@ -84,13 +84,6 @@ async def get_players_from_db(authorization: str = Header(None)):
     return get_db_players(user['draft_id'])
 
 
-@app.get('/get_db_players_new')
-# @exception_handler
-async def get_players_from_db(position: str = 'skaters', authorization: str = Header(None)):
-    user = get_user_from_auth_token(authorization)
-    return get_db_players_new(user['draft_id'], position)
-
-
 @app.get('/get_teams')
 # @exception_handler
 async def get_teams(authorization: str = Header(None)):
