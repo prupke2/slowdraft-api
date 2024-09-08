@@ -44,7 +44,7 @@ def refresh_access_token(refresh_token, client_id, client_secret, redirect_uri):
         'grant_type': 'refresh_token'
     }
     response = requests.post(config.GET_TOKEN_URL, data)
-    if response.status_code >= 200 and response.status_code <= 203:
+    if util.valid_2XX_response(response):
         token_response = response.json()
         config.access_token = token_response['access_token']
         config.refresh_token = token_response['refresh_token']
@@ -72,7 +72,7 @@ def oauth_login(code):
 
     response = get_access_token(code)
 
-    if response.status_code >= 200 and response.status_code <= 203:
+    if util.valid_2XX_response(response):
         token_response = response.json()
         try:
             register_attempt = models.league.register_leagues(token_response['access_token'], token_response['refresh_token'])

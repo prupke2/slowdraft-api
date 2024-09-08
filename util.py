@@ -14,6 +14,8 @@ def return_error(message, status=400):
         "status": status
     }
 
+def valid_2XX_response(response):
+    return response.status_code >= 200 and response.status_code <= 203
 
 def update(table, draft_id):
     database = db.DB()
