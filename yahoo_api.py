@@ -92,9 +92,46 @@ def get_yteam(team_id):
     return {team_query: team_query}
 
 
+def add_player_analysis_data(player_stats, players):
+    # takes an existing list of player stats and appends analysis stats to it
+    analysis_data = []
+    count = players['fantasy_content']['players']['count']
+    try:
+        for index in range(count):
+            current_player_stats = player_stats[index]
+            
+            player_data = players['fantasy_content']['players'][f'{index}']
+            player_id = player_data['player'][0][1]['player_id']
+            player_analysis = player_data['player'][1]
+            
+            average_pick = player_analysis['draft_analysis'][0]['average_pick']
+            percent_drafted = player_analysis['draft_analysis'][3]['percent_drafted']
+            
+            stat_data_average_pick = {
+                'stat_id': 'average_pick',
+                'player_id': player_id,
+                'value': average_pick
+            }
+            analysis_data.append(stat_data_average_pick)
+
+            stat_data_percent_drafted = {
+                'stat_id': 'percent_drafted',
+                'player_id': player_id,
+                'value': percent_drafted
+            }
+
+            analysis_data.append(stat_data_percent_drafted)
+
+    except BaseException as err:
+        print(f'Error in add_player_analysis_data function: {err}')
+        return []
+
+    return analysis_data
+
+
 def organize_stat_data(stats):
     # creates new arrays to hold all player stats
-    players = []
+    # players = []
     player_stats = []
     # print("\n\nSTATS RECEIVED: " + str(stats))
 
