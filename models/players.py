@@ -30,11 +30,7 @@ def insert_db_player(name, player_id, team, positions_array, draft_id):
 	database.cur.execute(query, (name, player_id, player_key, team, positions_string))
 	database.connection.commit()
 
-	table = "latest_player_db_update"
-	if positions_string == 'G':
-		table = "latest_goalie_db_update"
-
-	util.update(table, draft_id)
+	util.update("latest_player_db_update", draft_id)
 	return util.return_true()
 
 def get_db_players(draft_id):

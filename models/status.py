@@ -15,7 +15,7 @@ def get_updates_with_league(yahoo_league_id, team_key, draft_id):
     database.dict_cur.execute(
         f"""
 					SELECT u.latest_draft_update, u.latest_team_update, u.latest_forum_update, 
-          				u.latest_player_db_update, u.latest_rules_update, u.latest_goalie_db_update, d.current_pick
+          				u.latest_player_db_update, u.latest_rules_update, d.current_pick
           FROM updates u
 					LEFT JOIN draft d
 						ON u.draft_id = d.draft_id

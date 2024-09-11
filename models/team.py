@@ -150,5 +150,4 @@ def add_keeper(team_key, player_id, draft_id):
 	database.connection.commit()
 	util.update('latest_team_update', draft_id)
 	util.update('latest_player_db_update', draft_id)
-	util.update('latest_goalie_db_update', draft_id)
 	return util.return_true()

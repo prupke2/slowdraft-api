@@ -154,9 +154,9 @@ def set_draft_picks(database, draft_id, rounds, snake):
 def set_updates_table(database, yahoo_league_id, draft_id):
 	sql = """INSERT INTO updates(
 						latest_draft_update, latest_team_update, latest_forum_update, latest_player_db_update,
-						latest_rules_update, latest_goalie_db_update, yahoo_league_id, draft_id
+						latest_rules_update, yahoo_league_id, draft_id
 					) 
-						VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+						VALUES(%s, %s, %s, %s, %s, %s, %s)
 				"""
 	now = str(datetime.datetime.utcnow())
 	database.cur.execute(sql, (now, now, now, now, now, now, yahoo_league_id, draft_id))
@@ -356,7 +356,7 @@ def commit_pick(draft_id, player_id, team_key, pick):
 	database.cur.execute(sql, (draft_id, team_key, player_id))
 	database.connection.commit()
 	sql = """ UPDATE updates 
-			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s, latest_goalie_db_update = %s
+			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s
 			WHERE draft_id = %s
 	"""
 	print(f"updating draft, team, db to now: {now}")
