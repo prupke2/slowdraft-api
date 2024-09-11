@@ -55,7 +55,6 @@ def get_db_players(draft_id):
 						y2.headshot AS "headshot",
 						y2.ir,
 						y2.average_pick,
-						y2.percent_drafted,
 						CASE 
 							WHEN w.player_id = y2.player_id THEN true
 							ELSE false
