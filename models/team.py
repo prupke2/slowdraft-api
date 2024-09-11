@@ -24,6 +24,8 @@ def get_teams_from_db(draft_id):
 							y2.prospect, 
 							y2.player_id, 
 							y2.headshot,
+							y2.ir,
+							y2.average_pick,
 							{GOALIE_STAT_COLUMNS},
 							{SKATER_STAT_COLUMNS},
 							(	SELECT overall_pick
