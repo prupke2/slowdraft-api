@@ -360,7 +360,7 @@ def commit_pick(draft_id, player_id, team_key, pick):
 			WHERE draft_id = %s
 	"""
 	print(f"updating draft, team, db to now: {now}")
-	database.cur.execute(sql, (now, now, now, now, draft_id))
+	database.cur.execute(sql, (now, now, now, draft_id))
 	database.connection.commit()
 	return util.return_true()
 
