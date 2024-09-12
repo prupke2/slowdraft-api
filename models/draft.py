@@ -159,7 +159,7 @@ def set_updates_table(database, yahoo_league_id, draft_id):
 						VALUES(%s, %s, %s, %s, %s, %s, %s)
 				"""
 	now = str(datetime.datetime.utcnow())
-	database.cur.execute(sql, (now, now, now, now, now, now, yahoo_league_id, draft_id))
+	database.cur.execute(sql, (now, now, now, now, now, yahoo_league_id, draft_id))
 	database.connection.commit()
 	return
 # def delete_league_and_picks(draft_id, yahoo_league_id):
