@@ -433,15 +433,15 @@ def check_current_pick_in_draft(draft_id):
 	database.dict_cur.execute(sql, [draft_id])
 	current_pick = database.dict_cur.fetchone()
 	print("current: " + str(current_pick))
-	if current_pick is None:
-		sql = "UPDATE draft SET is_live=%s, is_over=%s WHERE draft_id=%s"
-		database.cur.execute(sql, (0, 1, draft_id))
-	else:
+	if current_pick is not None:
+	# 	sql = "UPDATE draft SET is_live=%s, is_over=%s WHERE draft_id=%s"
+	# 	database.cur.execute(sql, (0, 1, draft_id))
+	# else:
 		sql = "UPDATE draft SET current_pick=%s WHERE draft_id=%s"
 		pick = current_pick['overall_pick']
 		print(f"pick: {pick}")
 		database.cur.execute(sql, (pick, draft_id))
-	database.connection.commit()
+		database.connection.commit()
 	return	
 
 def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
