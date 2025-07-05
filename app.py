@@ -160,6 +160,10 @@ async def remove_from_watchlist(post: WatchlistForm, authorization: str = Header
     user = get_user_from_auth_token(authorization)
     return remove_player_from_watchlist(user['yahoo_league_id'], user['team_key'], post.player_id)
 
+@app.post('/toggle_autodraft')
+async def toggle_autodraft(post: AutodraftForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return toggle_player_on_watchlist(user['yahoo_league_id'], user['team_key'], post.player_id, post.action)
 
 # -------------------------- Draft routes --------------------------
 
