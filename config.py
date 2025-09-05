@@ -104,8 +104,8 @@ NHL_TEAM_ID_TO_SHORT_NAME = {
 }
 
 # Table names of player DB. Previous year is used to add stats
-YAHOO_PLAYER_DB = "yahoo_db_24_25"
-YAHOO_PLAYER_DB_PREVIOUS_YEAR = "yahoo_db_23_24"
+YAHOO_PLAYER_DB = "yahoo_db_25_26"
+YAHOO_PLAYER_DB_PREVIOUS_YEAR = "yahoo_db_24_25"
 SKATER_STAT_COLUMNS = 'y1."0", y1."1", y1."2", y1."3", y1."4", y1."5", y1."8", y1."14", y1."15", y1."16", y1."31", y1."32"'
 GOALIE_STAT_COLUMNS = 'y1."18", y1."19", y1."22", y1."23", y1."24", y1."25", y1."26"'
 
