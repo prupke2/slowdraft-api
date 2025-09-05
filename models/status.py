@@ -48,6 +48,10 @@ def check_league(f):
 
 
 def set_team_sessions(league_key, team_query):
+    # This function will return an error via the get_user function below if:
+    #    * the user (team_key) is not in the DB, OR
+    #    * the draft_id does not exist for this yahoo_league_id, OR
+    #    # the draft_id, league_key, game_key, or yahoo_league_id env vars do not match
     my_team_data = {}
 
     my_team_data['yahoo_league_id'] = team_query['fantasy_content']['league']['league_id']
@@ -70,7 +74,6 @@ def set_team_sessions(league_key, team_query):
             team_data['email'] = ""
 
         if 'is_owned_by_current_login' in team:
-            # if session['guid'] == team['managers']['manager']['guid']:
             my_team_data['yahoo_team_id'] = int(team['team_id'])
             my_team_data['logo'] = team['team_logos']['team_logo']['url']
             my_team_data['team_name'] = team['name']
@@ -90,7 +93,7 @@ def set_team_sessions(league_key, team_query):
                 is_live = is_live
                 registered = True
         teams.append(team_data)
-        print("success!")
+        print("success getting m team data!")
     return teams, my_team_data, is_live, registered
 
 
