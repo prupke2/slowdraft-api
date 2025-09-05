@@ -58,6 +58,7 @@ def register_leagues(access_token, refresh_token):
     
     teams, my_team_data, is_live_draft, registered = status.set_team_sessions(
         league_key, team_query)
+
     web_token = oauth.web_token.generate_web_token(
         leagues, my_team_data, access_token, refresh_token)
     # else:
@@ -116,7 +117,7 @@ def check_league_registrations(leagues):
     registered_leagues = []
     for i, league in enumerate(leagues_query):
         print(f"league: {league}")
-        registered_leagues.append(league)
+        registered_leagues.append(dict(league)['yahoo_league_id'])
     for league in leagues:
         league['registered'] = int(league['league_id']) in registered_leagues
     print(f"\n\nLEAGUES: {leagues}\n\n")
