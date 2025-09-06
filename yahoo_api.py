@@ -55,6 +55,8 @@ def yahoo_request(url, access_token=None, refresh_token=None, useJson=False):
 
 
 def organize_player_info(player_keys):
+    # takes a string of comma-separated player keys and returns an array of player info
+    # accounts for two possible return formats
     LEAGUE_URL = YAHOO_BASE_URL + "league/" + \
         os.environ['league_key'] + "/players;player_keys=" + player_keys
     players = []
@@ -86,7 +88,7 @@ def organize_player_info(player_keys):
 
 
 def get_yteam(team_id):
-    TEAM_URL = f"https://fantasysports.yahooapis.com/fantasy/v2/team/{os.environ['league_key']}.t.10"
+    TEAM_URL = f"https://fantasysports.yahooapis.com/fantasy/v2/team/{os.environ['league_key']}.t.{team_id}"
     team_query = yahoo_request(TEAM_URL)
     print(f"team_query: {team_query}")
     return {team_query: team_query}
@@ -94,12 +96,15 @@ def get_yteam(team_id):
 
 def add_player_analysis_data(player_stats, players):
     # takes an existing list of player stats and appends analysis stats to it
-    analysis_data = []
+    # Sample player_stats:
+    # [
+    #     {'stat_id': '18', 'value': '22', 'player_id': '1234', 'stat': 'GS'},
+    #     {'stat_id': '23', 'value': '2.93', 'player_id': '5678', 'stat': 'GAA'}, ...
+    # ]
+    # This function appends analysis stats (average_pick, percent_drafted) to this list in the same format
     count = players['fantasy_content']['players']['count']
     try:
         for index in range(count):
-            current_player_stats = player_stats[index]
-            
             player_data = players['fantasy_content']['players'][f'{index}']
             player_id = player_data['player'][0][1]['player_id']
             player_analysis = player_data['player'][1]
@@ -110,23 +115,24 @@ def add_player_analysis_data(player_stats, players):
             stat_data_average_pick = {
                 'stat_id': 'average_pick',
                 'player_id': player_id,
-                'value': average_pick
+                'value': average_pick,
+                'stat': 'Average Pick'
             }
-            analysis_data.append(stat_data_average_pick)
+            player_stats.append(stat_data_average_pick)
 
             stat_data_percent_drafted = {
                 'stat_id': 'percent_drafted',
                 'player_id': player_id,
-                'value': percent_drafted
+                'value': percent_drafted,
+                'stat': '% Drafted'
             }
-
-            analysis_data.append(stat_data_percent_drafted)
+            player_stats.append(stat_data_percent_drafted)
 
     except BaseException as err:
         print(f'Error in add_player_analysis_data function: {err}')
         return []
 
-    return analysis_data
+    return player_stats
 
 
 def organize_stat_data(stats):
