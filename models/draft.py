@@ -462,3 +462,20 @@ def add_pick_to_draft(draft_id, yahoo_league_id, team_key):
 
 	util.update('latest_draft_update', draft_id)
 	return util.return_true()
+
+def refresh_draft_timestamps(draft_id, yahoo_league_id):
+	try:
+		database = db.DB()
+		# add 5 seconds to account for any delays
+		now = datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
+		sql = """
+			UPDATE updates
+			SET latest_draft_update = %s, latest_team_update = %s, latest_player_db_update = %s
+			WHERE draft_id = %s
+			AND yahoo_league_id = %s
+		"""
+		database.cur.execute(sql, (now, now, now, draft_id, yahoo_league_id))
+		database.connection.commit()
+		return util.return_true()
+	except Exception as e:
+		return util.return_error(e)

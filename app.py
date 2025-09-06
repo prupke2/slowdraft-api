@@ -182,6 +182,14 @@ async def draft_player(player_id, authorization: str = Header(None)):
 # -------------------------- Admin routes --------------------------
 
 
+@app.get('/refresh_timestamps')
+# @exception_handler
+# @check_if_admin
+async def refresh_timestamps(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return refresh_draft_timestamps(user['draft_id'], user['yahoo_league_id'])
+
+
 @app.post('/make_pick')
 # @exception_handler
 # @check_if_admin
