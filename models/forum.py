@@ -80,6 +80,8 @@ def update_forum_post(user, post):
 	database.connection.commit()
 	if post.parent_id is not None:
 		update_parent_timestamp(post.parent_id)
+
+	util.update('latest_forum_update', user['draft_id'])
 	return util.return_true()
 
 def update_parent_timestamp(parent_id):
@@ -94,4 +96,6 @@ def delete_forum_post(id):
 	sql = "DELETE FROM forum where id=%s"
 	database.cur.execute(sql, id)	
 	database.connection.commit()
+
+	util.update('latest_forum_update', user['draft_id'])
 	return util.return_true()   
