@@ -478,6 +478,7 @@ def refresh_draft_timestamps(draft_id, yahoo_league_id):
 			AND yahoo_league_id = %s
 		"""
 		database.cur.execute(sql, (now, now, now, draft_id, yahoo_league_id))
+		database.connection.commit()
 		return util.return_true()
 	except Exception as e:
 		return util.return_error(e)
