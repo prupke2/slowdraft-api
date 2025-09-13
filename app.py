@@ -190,6 +190,22 @@ async def refresh_timestamps(authorization: str = Header(None)):
     return refresh_draft_timestamps(user['draft_id'], user['yahoo_league_id'])
 
 
+@app.get('/get_user_drafting_status')
+# @exception_handler
+# @check_if_admin
+async def get_user_drafting_status_admin(authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return get_user_drafting_status(user['draft_id'], user['yahoo_league_id'])
+
+
+@app.post('/update_user_drafting_status')
+# @exception_handler
+# @check_if_admin
+async def update_user_drafting_status_admin(post: UpdateUserDraftingStatusForm, authorization: str = Header(None)):
+    user = get_user_from_auth_token(authorization)
+    return update_user_drafting_status(post.team_key, post.drafting_now, user['yahoo_league_id'])
+
+
 @app.post('/make_pick')
 # @exception_handler
 # @check_if_admin

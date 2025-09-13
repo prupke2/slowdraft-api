@@ -7,6 +7,10 @@ from config import YAHOO_PLAYER_DB
 import config
 import json
 
+class UpdateUserDraftingStatusForm(BaseModel):
+		team_key: str
+		drafting_now: bool
+
 class MakePickForm(BaseModel):
 		player_id: int
 		team_key: str
@@ -474,6 +478,39 @@ def refresh_draft_timestamps(draft_id, yahoo_league_id):
 			AND yahoo_league_id = %s
 		"""
 		database.cur.execute(sql, (now, now, now, draft_id, yahoo_league_id))
+		return util.return_true()
+	except Exception as e:
+		return util.return_error(e)
+
+def get_user_drafting_status(draft_id, yahoo_league_id):
+	try:
+		print(f'draft_id: {draft_id}')
+		print(f'yahoo_league_id: {yahoo_league_id}')
+		database = db.DB()
+		sql = """
+			SELECT u.username, u.team_key, u.drafting_now
+			FROM users u
+			INNER JOIN draft d
+				ON u.yahoo_league_id = d.yahoo_league_id
+			WHERE u.yahoo_league_id = %s
+				AND d.draft_id = %s
+			ORDER BY u.team_key
+		"""
+		t = database.dict_cur.execute(sql, (yahoo_league_id, draft_id))
+		return {'success': True, 'users': database.dict_cur.fetchall()}
+	except Exception as e:
+		return util.return_error(e)
+
+def update_user_drafting_status(team_key, drafting_now, yahoo_league_id):
+	try:
+		database = db.DB()
+		sql = """
+			UPDATE users
+			SET drafting_now = %s
+			WHERE team_key = %s
+			AND yahoo_league_id = %s
+		"""
+		database.cur.execute(sql, (drafting_now, team_key, yahoo_league_id))
 		database.connection.commit()
 		return util.return_true()
 	except Exception as e:
